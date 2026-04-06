@@ -1,0 +1,55 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Thu, 09 Sep 2021 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/bash/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</guid>
+			<title>Find which process is running on a certain port and kill it</title>
+			<link>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</link>
+			<description>Identify and terminate processes running on a specific port in your dev environment.</description>
+			<pubDate>Thu, 09 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>bash</category><category>macos</category><category>kill</category><category>process</category><category>port</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/macos-disable-characters-popup-when-press-and-hold-keys</guid>
+			<title>How to disable popup showing accented characters when press and hold a key on macOS</title>
+			<link>https://lazy-cat.pages.dev/blog/macos-disable-characters-popup-when-press-and-hold-keys</link>
+			<description>How to disable popup showing accented characters when press and hold a key on macOS.</description>
+			<pubDate>Wed, 07 May 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>macos</category><category>bash</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/macos-zip-cli</guid>
+			<title>Macos command to zip files and directories into a single file.</title>
+			<link>https://lazy-cat.pages.dev/blog/macos-zip-cli</link>
+			<description>Macos command to zip files and directories into a single file.</description>
+			<pubDate>Tue, 11 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>macos</category><category>bash</category><category>zip</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/read-all-file-names-inside-a-folder</guid>
+			<title>Read all file names in a directory</title>
+			<link>https://lazy-cat.pages.dev/blog/read-all-file-names-inside-a-folder</link>
+			<description>A quick utility to read all file names in a directory using Node.js.</description>
+			<pubDate>Sat, 28 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>bash</category><category>shell</category><category>script</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

@@ -1,0 +1,285 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Mon, 06 Apr 2026 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/hello-world</guid>
+			<title>Hello World</title>
+			<link>https://lazy-cat.pages.dev/blog/hello-world</link>
+			<description>Welcome to my blog! This is my first post.</description>
+			<pubDate>Mon, 06 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>hello-world</category><category>blog</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/test-mermaid-diagrams</guid>
+			<title>Test Mermaid Diagrams</title>
+			<link>https://lazy-cat.pages.dev/blog/test-mermaid-diagrams</link>
+			<description>Testing Mermaid diagram rendering with flowcharts and sequence diagrams.</description>
+			<pubDate>Mon, 06 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>mermaid</category><category>diagrams</category><category>test</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/parse-function-from-string</guid>
+			<title>How (and why) to parse a function from a string in JavaScript/TypeScript</title>
+			<link>https://lazy-cat.pages.dev/blog/parse-function-from-string</link>
+			<description>Safely send JavaScript functions from your server to your client by serializing them as strings, then parsing them back into callable functions on the client side.</description>
+			<pubDate>Fri, 13 Jun 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>parsing</category><category>function</category><category>deserialization</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/macos-disable-characters-popup-when-press-and-hold-keys</guid>
+			<title>How to disable popup showing accented characters when press and hold a key on macOS</title>
+			<link>https://lazy-cat.pages.dev/blog/macos-disable-characters-popup-when-press-and-hold-keys</link>
+			<description>How to disable popup showing accented characters when press and hold a key on macOS.</description>
+			<pubDate>Wed, 07 May 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>macos</category><category>bash</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/shopify-hydrogen-codegen-configs</guid>
+			<title>Shopify Hydrogen Codegen Configs</title>
+			<link>https://lazy-cat.pages.dev/blog/shopify-hydrogen-codegen-configs</link>
+			<description>How to configure Shopify Hydrogen Codegen to automatically generate types for your GraphQL queries.</description>
+			<pubDate>Mon, 17 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>shopify</category><category>hydrogen</category><category>codegen</category><category>graphql</category><category>types</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/macos-zip-cli</guid>
+			<title>Macos command to zip files and directories into a single file.</title>
+			<link>https://lazy-cat.pages.dev/blog/macos-zip-cli</link>
+			<description>Macos command to zip files and directories into a single file.</description>
+			<pubDate>Tue, 11 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>macos</category><category>bash</category><category>zip</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/relative-time-ago-parsing</guid>
+			<title>Relative time-ago parsing in TypeScript</title>
+			<link>https://lazy-cat.pages.dev/blog/relative-time-ago-parsing</link>
+			<description>A simple utility function to parse relative time-ago into human-readable format.</description>
+			<pubDate>Tue, 11 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>time</category><category>date</category><category>relative-time-ago</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/connecting-to-github-using-ssh</guid>
+			<title>Enhance Github security by connecting using Secure Shell Protocol (SSH)</title>
+			<link>https://lazy-cat.pages.dev/blog/connecting-to-github-using-ssh</link>
+			<description>Using the SSH protocol, you can connect and authenticate to remote Github servers and services without supplying your username and personal access token at each visit.</description>
+			<pubDate>Mon, 14 Oct 2024 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>github</category><category>ssh</category><category>security</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/pnpm-aliases</guid>
+			<title>Pnpm aliases</title>
+			<link>https://lazy-cat.pages.dev/blog/pnpm-aliases</link>
+			<description>How to install and update pnpm, create a shell alias for it, and upgrade project dependencies efficiently.</description>
+			<pubDate>Fri, 11 Oct 2024 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>pnpm</category><category>aliases</category><category>.zprofile</category><category>.bash_profile</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/vscode-settings</guid>
+			<title>VSCode settings and keyboard shortcuts</title>
+			<link>https://lazy-cat.pages.dev/blog/vscode-settings</link>
+			<description>My personal VSCode configurations, settings, and key bindings that I use across all my devices.</description>
+			<pubDate>Fri, 11 Oct 2024 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>vscode</category><category>settings</category><category>keybindings</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/npm-commands</guid>
+			<title>Common npm commands to use locally</title>
+			<link>https://lazy-cat.pages.dev/blog/npm-commands</link>
+			<description>Essential npm commands for local development, covering package installation, version control, and script management.</description>
+			<pubDate>Tue, 26 Sep 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>npm</category><category>commands</category><category>npx</category><category>link</category><category>unlink</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/remixing-remix-submission</guid>
+			<title>Simple way to handle route submission in a Remix app</title>
+			<link>https://lazy-cat.pages.dev/blog/remixing-remix-submission</link>
+			<description>Create a custom hook to manage in-route form submissions in a Remix app.</description>
+			<pubDate>Mon, 04 Sep 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>remix</category><category>remix-utils</category><category>submission</category><category>hooks</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/verify-github-webhooks-requests</guid>
+			<title>Verifying Github webhooks requests in Node.js</title>
+			<link>https://lazy-cat.pages.dev/blog/verify-github-webhooks-requests</link>
+			<description>Verify and process incoming GitHub webhooks. How to set up listeners, validate requests, and handle Github&#39;s webhook events.</description>
+			<pubDate>Sun, 09 Jul 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>github</category><category>webhook</category><category>github-api</category><category>verify-webhook-signature</category><category>remix</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/using-spotify-api-to-display-currently-playing-track</guid>
+			<title>How to work with Spotify&#39;s API to display currently playing track on a website?</title>
+			<link>https://lazy-cat.pages.dev/blog/using-spotify-api-to-display-currently-playing-track</link>
+			<description>Retrieve a Spotify access token to display the currently playing track on your website or application.</description>
+			<pubDate>Thu, 06 Apr 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>spotify</category><category>nowplaying</category><category>spotify-api</category><category>nextjs</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/casing-utils</guid>
+			<title>String casing utilities in JavaScript</title>
+			<link>https://lazy-cat.pages.dev/blog/casing-utils</link>
+			<description>A various ready-to-use string casing utilities in Typescript.</description>
+			<pubDate>Tue, 21 Feb 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>typescript</category><category>string</category><category>casing</category><category>utilities</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/rename-a-case-sensitive-file-in-a-git-repo</guid>
+			<title>How to safely rename a case sensitive file/directory in a git repo?</title>
+			<link>https://lazy-cat.pages.dev/blog/rename-a-case-sensitive-file-in-a-git-repo</link>
+			<description>Safely rename case-sensitive files or directories in a Git repository to avoid conflicts or case inconsistencies.</description>
+			<pubDate>Tue, 11 Oct 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>git</category><category>rename</category><category>case-sensitive</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/remove-falsy-values-from-an-object</guid>
+			<title>Remove all falsy values from an object and its nested children</title>
+			<link>https://lazy-cat.pages.dev/blog/remove-falsy-values-from-an-object</link>
+			<description>Recursively removes all falsy values (null, undefined, 0, false) from an object and its nested properties.</description>
+			<pubDate>Wed, 21 Sep 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>utils</category><category>object</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/use-async</guid>
+			<title>A custom hooks to use an async effect</title>
+			<link>https://lazy-cat.pages.dev/blog/use-async</link>
+			<description>Build a custom React hook to use asynchronous effects inside functional components.</description>
+			<pubDate>Tue, 22 Feb 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>react</category><category>hooks</category><category>async</category><category>effect</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/color-validator</guid>
+			<title>Validate if a string is a valid color</title>
+			<link>https://lazy-cat.pages.dev/blog/color-validator</link>
+			<description>Validate strings to ensure they represent valid colors in various formats (hex, RGB, and named colors).</description>
+			<pubDate>Tue, 12 Oct 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>color</category><category>validator</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</guid>
+			<title>Find which process is running on a certain port and kill it</title>
+			<link>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</link>
+			<description>Identify and terminate processes running on a specific port in your dev environment.</description>
+			<pubDate>Thu, 09 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>bash</category><category>macos</category><category>kill</category><category>process</category><category>port</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/markdown-code-block-syntax</guid>
+			<title>Markdown Code block&#39;s basic and advanced syntaxes</title>
+			<link>https://lazy-cat.pages.dev/blog/markdown-code-block-syntax</link>
+			<description>A detailed overview of Markdown code block syntaxes, covering both basic and advanced use cases.</description>
+			<pubDate>Thu, 09 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>markdown</category><category>code-block</category><category>syntax</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/event-emitter</guid>
+			<title>Simple Event-Emitter/PubSub pattern</title>
+			<link>https://lazy-cat.pages.dev/blog/event-emitter</link>
+			<description>A lightweight pub/sub mechanism to handle custom events without adding a full-blown library.</description>
+			<pubDate>Mon, 06 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>pattern</category><category>event-emitter</category><category>pubsub</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/manipulating-dates-in-shopify-liquid</guid>
+			<title>Adding/substracting days in Shopify&#39;s Liquid template language</title>
+			<link>https://lazy-cat.pages.dev/blog/manipulating-dates-in-shopify-liquid</link>
+			<description>How to manipulate dates (adding, subtracting, and formatting, etc) in Shopify&#39;s Liquid template language.</description>
+			<pubDate>Sun, 29 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>liquid</category><category>shopify</category><category>date</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/read-all-file-names-inside-a-folder</guid>
+			<title>Read all file names in a directory</title>
+			<link>https://lazy-cat.pages.dev/blog/read-all-file-names-inside-a-folder</link>
+			<description>A quick utility to read all file names in a directory using Node.js.</description>
+			<pubDate>Sat, 28 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>bash</category><category>shell</category><category>script</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/vnese-to-plain-english</guid>
+			<title>Replace all VNese letters with the corresponding English accents</title>
+			<link>https://lazy-cat.pages.dev/blog/vnese-to-plain-english</link>
+			<description>Convert Vietnamese text to plain English by replacing accented characters with their equivalents.</description>
+			<pubDate>Sat, 28 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>regex</category><category>replace</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/gitignore-ignore-directory-keep-1-file</guid>
+			<title>Ignore all files in a directory except a specific file</title>
+			<link>https://lazy-cat.pages.dev/blog/gitignore-ignore-directory-keep-1-file</link>
+			<description>How to ignore all files in a directory except for a specific one.</description>
+			<pubDate>Fri, 27 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>git</category><category>gitignore</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/sync-react-component-state-with-local-storage</guid>
+			<title>Synchronize React component state with local storage</title>
+			<link>https://lazy-cat.pages.dev/blog/sync-react-component-state-with-local-storage</link>
+			<description>Utilize a custom hook that syncs state with local storage, allowing for persistent state between sessions.</description>
+			<pubDate>Fri, 27 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>react</category><category>state</category><category>hooks</category><category>local-storage</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

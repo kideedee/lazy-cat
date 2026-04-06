@@ -1,0 +1,35 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Mon, 14 Oct 2024 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/github/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/connecting-to-github-using-ssh</guid>
+			<title>Enhance Github security by connecting using Secure Shell Protocol (SSH)</title>
+			<link>https://lazy-cat.pages.dev/blog/connecting-to-github-using-ssh</link>
+			<description>Using the SSH protocol, you can connect and authenticate to remote Github servers and services without supplying your username and personal access token at each visit.</description>
+			<pubDate>Mon, 14 Oct 2024 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>github</category><category>ssh</category><category>security</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/verify-github-webhooks-requests</guid>
+			<title>Verifying Github webhooks requests in Node.js</title>
+			<link>https://lazy-cat.pages.dev/blog/verify-github-webhooks-requests</link>
+			<description>Verify and process incoming GitHub webhooks. How to set up listeners, validate requests, and handle Github&#39;s webhook events.</description>
+			<pubDate>Sun, 09 Jul 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>github</category><category>webhook</category><category>github-api</category><category>verify-webhook-signature</category><category>remix</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

@@ -1,0 +1,63 @@
+---
+title: 'Test Mermaid Diagrams'
+date: '2026-04-06'
+tags: ['mermaid', 'diagrams', 'test']
+summary: 'Testing Mermaid diagram rendering with flowcharts and sequence diagrams.'
+images: []
+authors: ['default']
+---
+
+## Flowchart Example
+
+Here's a simple flowchart showing a decision process:
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B
+    C --> E[End]
+```
+
+## Sequence Diagram Example
+
+Here's a sequence diagram showing a typical API request flow:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Server
+    participant Database
+
+    User->>Browser: Click button
+    Browser->>Server: HTTP Request
+    Server->>Database: Query data
+    Database-->>Server: Return results
+    Server-->>Browser: JSON Response
+    Browser-->>User: Display data
+```
+
+## Class Diagram Example
+
+```mermaid
+classDiagram
+    class Animal {
+        +String name
+        +int age
+        +makeSound()
+    }
+    class Dog {
+        +String breed
+        +bark()
+    }
+    class Cat {
+        +String color
+        +meow()
+    }
+    Animal <|-- Dog
+    Animal <|-- Cat
+```
+
+If you can see the diagrams above as SVG images (not code blocks), Mermaid is working correctly!

@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Fri, 13 Jun 2025 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/deserialization/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/parse-function-from-string</guid>
+			<title>How (and why) to parse a function from a string in JavaScript/TypeScript</title>
+			<link>https://lazy-cat.pages.dev/blog/parse-function-from-string</link>
+			<description>Safely send JavaScript functions from your server to your client by serializing them as strings, then parsing them back into callable functions on the client side.</description>
+			<pubDate>Fri, 13 Jun 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>parsing</category><category>function</category><category>deserialization</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

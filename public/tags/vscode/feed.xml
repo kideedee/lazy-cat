@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Fri, 11 Oct 2024 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/vscode/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/vscode-settings</guid>
+			<title>VSCode settings and keyboard shortcuts</title>
+			<link>https://lazy-cat.pages.dev/blog/vscode-settings</link>
+			<description>My personal VSCode configurations, settings, and key bindings that I use across all my devices.</description>
+			<pubDate>Fri, 11 Oct 2024 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>vscode</category><category>settings</category><category>keybindings</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

@@ -1,0 +1,65 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 21 Feb 2023 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/javascript/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/casing-utils</guid>
+			<title>String casing utilities in JavaScript</title>
+			<link>https://lazy-cat.pages.dev/blog/casing-utils</link>
+			<description>A various ready-to-use string casing utilities in Typescript.</description>
+			<pubDate>Tue, 21 Feb 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>typescript</category><category>string</category><category>casing</category><category>utilities</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/event-emitter</guid>
+			<title>Simple Event-Emitter/PubSub pattern</title>
+			<link>https://lazy-cat.pages.dev/blog/event-emitter</link>
+			<description>A lightweight pub/sub mechanism to handle custom events without adding a full-blown library.</description>
+			<pubDate>Mon, 06 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>pattern</category><category>event-emitter</category><category>pubsub</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/remove-falsy-values-from-an-object</guid>
+			<title>Remove all falsy values from an object and its nested children</title>
+			<link>https://lazy-cat.pages.dev/blog/remove-falsy-values-from-an-object</link>
+			<description>Recursively removes all falsy values (null, undefined, 0, false) from an object and its nested properties.</description>
+			<pubDate>Wed, 21 Sep 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>utils</category><category>object</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/useful-array-utilities</guid>
+			<title>Useful array utilities</title>
+			<link>https://lazy-cat.pages.dev/blog/useful-array-utilities</link>
+			<description>A collection of array utilities that simplify everyday tasks like filtering, sorting, mapping, and more.</description>
+			<pubDate>Mon, 11 Oct 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>array</category><category>utilities</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/vnese-to-plain-english</guid>
+			<title>Replace all VNese letters with the corresponding English accents</title>
+			<link>https://lazy-cat.pages.dev/blog/vnese-to-plain-english</link>
+			<description>Convert Vietnamese text to plain English by replacing accented characters with their equivalents.</description>
+			<pubDate>Sat, 28 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>regex</category><category>replace</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

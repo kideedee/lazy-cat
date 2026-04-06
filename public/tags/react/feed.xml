@@ -1,0 +1,35 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Fri, 27 Aug 2021 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/react/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/sync-react-component-state-with-local-storage</guid>
+			<title>Synchronize React component state with local storage</title>
+			<link>https://lazy-cat.pages.dev/blog/sync-react-component-state-with-local-storage</link>
+			<description>Utilize a custom hook that syncs state with local storage, allowing for persistent state between sessions.</description>
+			<pubDate>Fri, 27 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>react</category><category>state</category><category>hooks</category><category>local-storage</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/use-async</guid>
+			<title>A custom hooks to use an async effect</title>
+			<link>https://lazy-cat.pages.dev/blog/use-async</link>
+			<description>Build a custom React hook to use asynchronous effects inside functional components.</description>
+			<pubDate>Tue, 22 Feb 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>react</category><category>hooks</category><category>async</category><category>effect</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

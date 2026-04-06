@@ -1,0 +1,35 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Sun, 29 Aug 2021 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/shopify/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/manipulating-dates-in-shopify-liquid</guid>
+			<title>Adding/substracting days in Shopify&#39;s Liquid template language</title>
+			<link>https://lazy-cat.pages.dev/blog/manipulating-dates-in-shopify-liquid</link>
+			<description>How to manipulate dates (adding, subtracting, and formatting, etc) in Shopify&#39;s Liquid template language.</description>
+			<pubDate>Sun, 29 Aug 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>liquid</category><category>shopify</category><category>date</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/shopify-hydrogen-codegen-configs</guid>
+			<title>Shopify Hydrogen Codegen Configs</title>
+			<link>https://lazy-cat.pages.dev/blog/shopify-hydrogen-codegen-configs</link>
+			<description>How to configure Shopify Hydrogen Codegen to automatically generate types for your GraphQL queries.</description>
+			<pubDate>Mon, 17 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>shopify</category><category>hydrogen</category><category>codegen</category><category>graphql</category><category>types</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Thu, 09 Sep 2021 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/kill/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</guid>
+			<title>Find which process is running on a certain port and kill it</title>
+			<link>https://lazy-cat.pages.dev/blog/find-and-kill-process-on-given-port-in-macos</link>
+			<description>Identify and terminate processes running on a specific port in your dev environment.</description>
+			<pubDate>Thu, 09 Sep 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>bash</category><category>macos</category><category>kill</category><category>process</category><category>port</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

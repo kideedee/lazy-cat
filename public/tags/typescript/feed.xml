@@ -1,0 +1,55 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 21 Feb 2023 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/typescript/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/casing-utils</guid>
+			<title>String casing utilities in JavaScript</title>
+			<link>https://lazy-cat.pages.dev/blog/casing-utils</link>
+			<description>A various ready-to-use string casing utilities in Typescript.</description>
+			<pubDate>Tue, 21 Feb 2023 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>javascript</category><category>typescript</category><category>string</category><category>casing</category><category>utilities</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/color-validator</guid>
+			<title>Validate if a string is a valid color</title>
+			<link>https://lazy-cat.pages.dev/blog/color-validator</link>
+			<description>Validate strings to ensure they represent valid colors in various formats (hex, RGB, and named colors).</description>
+			<pubDate>Tue, 12 Oct 2021 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>color</category><category>validator</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/parse-function-from-string</guid>
+			<title>How (and why) to parse a function from a string in JavaScript/TypeScript</title>
+			<link>https://lazy-cat.pages.dev/blog/parse-function-from-string</link>
+			<description>Safely send JavaScript functions from your server to your client by serializing them as strings, then parsing them back into callable functions on the client side.</description>
+			<pubDate>Fri, 13 Jun 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>parsing</category><category>function</category><category>deserialization</category>
+		</item>
+	
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/relative-time-ago-parsing</guid>
+			<title>Relative time-ago parsing in TypeScript</title>
+			<link>https://lazy-cat.pages.dev/blog/relative-time-ago-parsing</link>
+			<description>A simple utility function to parse relative time-ago into human-readable format.</description>
+			<pubDate>Tue, 11 Mar 2025 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>typescript</category><category>time</category><category>date</category><category>relative-time-ago</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

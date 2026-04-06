@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 11 Oct 2022 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/case-sensitive/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/rename-a-case-sensitive-file-in-a-git-repo</guid>
+			<title>How to safely rename a case sensitive file/directory in a git repo?</title>
+			<link>https://lazy-cat.pages.dev/blog/rename-a-case-sensitive-file-in-a-git-repo</link>
+			<description>Safely rename case-sensitive files or directories in a Git repository to avoid conflicts or case inconsistencies.</description>
+			<pubDate>Tue, 11 Oct 2022 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>git</category><category>rename</category><category>case-sensitive</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

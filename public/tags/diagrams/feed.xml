@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>A personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Mon, 06 Apr 2026 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/diagrams/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/test-mermaid-diagrams</guid>
+			<title>Test Mermaid Diagrams</title>
+			<link>https://lazy-cat.pages.dev/blog/test-mermaid-diagrams</link>
+			<description>Testing Mermaid diagram rendering with flowcharts and sequence diagrams.</description>
+			<pubDate>Mon, 06 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>mermaid</category><category>diagrams</category><category>test</category>
+		</item>
+	
+			</channel>
+		</rss>
+	
