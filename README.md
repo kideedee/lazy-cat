@@ -1,22 +1,30 @@
-<h1 align="center">leohuynh.dev 🧑‍💻</h1>
+<h1 align="center">Lazy Cat 🐱</h1>
 
 <div align="center">
 
-[![Made in Vietnam](https://raw.githubusercontent.com/webuild-community/badge/master/svg/made-modern.svg)](https://leohuynh.dev)
+[![Made in Vietnam](https://raw.githubusercontent.com/webuild-community/badge/master/svg/made-modern.svg)](https://lazy-cat.pages.dev)
 
 </div>
 
 <p align="center">
-  <i>"My personal space on the cloud where I document my programming journey, sharing lessons, insights, and resources for fellow developers."</i>
+  <i>"Code by day, blog by night. Join me on my backend journey as we learn and grow together."</i>
 </p>
 
-![leohuynh.dev screenshot](https://cdn.shopify.com/s/files/1/0669/0262/2504/files/pawelzmarlak-2024-10-12T14_51_02.315Z.png?v=1728744886)
+## About Me
 
-## Motivation
+Hey there! I'm **Son Vu Quang** - a Backend Developer based in Ha Noi, Viet Nam.
 
-> Sharing is learning!
+- Started learning to code in 2017 during university
+- Graduated in early 2022 and began my career as a Backend Developer
+- Currently pursuing my Master's in Computer Science
+- I work mostly with Node.js and Go
 
-I started this blog to document and share things I’ve learned and found useful as a software engineer. Writing things down helps me solidify my understanding and hopefully provides value to fellow devs interested in web development, programming, and tech in general.
+### Interests
+
+- Vibe coding - building things with good music on
+- Watching and playing soccer
+- Reading books
+- Custom mechanical keyboards
 
 ## Features
 
@@ -28,7 +36,7 @@ I started this blog to document and share things I’ve learned and found useful
 - 🗃️ Database hosting with [Supabase](https://supabase.com/)
 - 🏗️ Type-safe database operations with [Drizzle ORM](https://orm.drizzle.team/)
 - 🔧 Code linting and formatting with [Biome](https://biomejs.dev/)
-- 🌗 Dark mode theme using [GitHub dark dimmed](https://github.blog/changelog/2021-04-14-dark-and-dimmed-themes-are-now-generally-available/) colors
+- 🌗 Dark mode theme
 
 ## Tech Stack
 
@@ -38,30 +46,18 @@ I started this blog to document and share things I’ve learned and found useful
 [![Umami](https://img.shields.io/badge/umami-262626?logo=umami&logoColor=white)](https://umami.is/)
 [![Supabase](https://img.shields.io/badge/supabase-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
 [![Drizzle ORM](https://img.shields.io/badge/drizzle%20orm-1a1a1a?logo=drizzle&logoColor=white)](https://orm.drizzle.team/)
-[![Biome](https://img.shields.io/badge/biome-1a1a1a?logo=biome&logoColor=white)](https://orm.drizzle.team/)
+[![Biome](https://img.shields.io/badge/biome-1a1a1a?logo=biome&logoColor=white)](https://biomejs.dev/)
 
-## Assets & Credits
+## Credits
+
+This blog is built on top of [leohuynh.dev](https://github.com/hta218/leohuynh.dev) - a beautiful Next.js blog template.
+
+### Assets
 
 - Images: [Unsplash](https://unsplash.com/)
 - GIFs: [GIPHY](https://giphy.com/)
 - Illustrations: [Storyset](https://storyset.com/)
 
-## Star History
-
-<a href="https://star-history.com/#hta218/leohuynh.dev&Date">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=hta218/leohuynh.dev&type=Date&theme=dark" />
-    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=hta218/leohuynh.dev&type=Date" />
-    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=hta218/leohuynh.dev&type=Date" />
-  </picture>
-</a>
-
-## Contributing
-
-Contributions, issues, and feature requests are super welcome 🍻!
-
-If you find something to improve, feel free to [open an issue](https://github.com/hta218/leohuynh.dev/issues) or [submit a pull request](https://github.com/hta218/leohuynh.dev/pulls).
-
 ---
 
-Copyright (c) 2019-present | Leo's dev blog – stories, insights, and ideas.
+Copyright (c) 2024-present | Son Vu Quang
