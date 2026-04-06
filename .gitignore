@@ -44,6 +44,6 @@ coverage/
 *.pem
 
 # Claude Code (local only)
-CLAUDE.local.md
-CLAUDE.md
-.claude/
+# CLAUDE.local.md
+# CLAUDE.md
+# .claude/
