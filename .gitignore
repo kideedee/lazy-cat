@@ -43,6 +43,7 @@ coverage/
 # Misc
 *.pem
 
+# Claude Code (local only)
+CLAUDE.local.md
 CLAUDE.md
 .claude/
-openspec/
