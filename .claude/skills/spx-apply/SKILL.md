@@ -248,7 +248,43 @@ Implement tasks — from an OpenSpec change or directly from conversation plan.
     - Disagree with the original plan if implementation reveals it was flawed
     - Suggest updating artifacts (design.md, tasks.md) to reflect the better approach
 
-11. **Final Output**
+11. **Git Commit & Push**
+
+    After verification passes (0 CRITICALs), create a git commit:
+
+    1. **Stage changes:**
+       ```bash
+       git add -A
+       ```
+
+    2. **Create commit** with Conventional Commits format:
+       ```bash
+       git commit -m "$(cat <<'EOF'
+       <type>: <short description>
+
+       <body - list of changes made>
+
+       Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+       EOF
+       )"
+       ```
+
+       - Type derived from branch name or change type (feat, fix, chore, etc.)
+       - Description from change/plan summary
+       - Body lists key changes made
+
+    3. **Show commit and suggest next steps:**
+       ```
+       ✓ Committed: <commit hash> "<commit message first line>"
+
+       **Next steps:**
+       1. 🚀 Push to remote: `git push -u origin <branch-name>`
+       2. 📝 Create PR: `gh pr create --title "<title>" --body "<body>"`
+       3. 📦 Archive change: `/spx-archive <name>`
+       4. 🔍 Review changes: `git show` or `git diff HEAD~1`
+       ```
+
+12. **Final Output**
 
     **If all clear:**
     ```
@@ -257,8 +293,12 @@ Implement tasks — from an OpenSpec change or directly from conversation plan.
     **Change:** <change-name>
     **Progress:** 7/7 tasks complete ✓
     **Verification:** All checks passed ✓
+    **Commit:** <hash> "<message>"
 
-    Ready to archive → `/spx-archive <name>`
+    **Next steps:**
+    1. 🚀 `git push -u origin <branch-name>`
+    2. 📝 `gh pr create --title "..." --body "..."`
+    3. 📦 `/spx-archive <name>`
     ```
 
     **If manual issues remain:**
@@ -376,14 +416,22 @@ When implementing directly from conversation plan without an openspec change:
 
    Same auto-fix loop as Mode A (step 9), but without verify-fixes.md (no change directory). Fix all issues on first pass, re-verify until zero crits or max 2 rounds.
 
+6. **Git commit and output**
+
+   Same git commit flow as Mode A (step 11). Create commit after verification passes.
+
    ```
    ## ✅ Implementation Complete & Verified
 
    **Plan:** [summary]
    **Progress:** N/N tasks complete ✓
    **Verification:** All checks passed ✓
+   **Commit:** <hash> "<message>"
 
-   To formalize this as an openspec change → `/spx-ff`
+   **Next steps:**
+   1. 🚀 `git push -u origin <branch-name>`
+   2. 📝 `gh pr create --title "..." --body "..."`
+   3. 📦 To formalize as openspec change → `/spx-ff`
    ```
 
 ---
