@@ -3,6 +3,13 @@
 @plugin "@tailwindcss/typography";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* CSS @property for animating conic-gradient border angle */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
 @theme inline {
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -20,6 +27,7 @@
   --animate-music-bar-3: music-bar-3 0.8s linear infinite;
   --animate-music-bar-4: music-bar-4 0.8s linear infinite;
   --animate-scale-up: scale-up 150ms ease-in-out forwards;
+  --animate-spin-border: spin-border 3s linear infinite;
 
   @keyframes wiggle {
     0% {
@@ -91,6 +99,15 @@
     }
     100% {
       transform: scale(1);
+    }
+  }
+
+  @keyframes spin-border {
+    from {
+      --border-angle: 0deg;
+    }
+    to {
+      --border-angle: 360deg;
     }
   }
 
@@ -196,5 +213,12 @@
   }
   .dark .toc-scroll:hover::-webkit-scrollbar-thumb {
     background: var(--color-gray-600, #4b5563);
+  }
+
+  /* Disable spin-border animation when user prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-spin-border {
+      animation: none;
+    }
   }
 }

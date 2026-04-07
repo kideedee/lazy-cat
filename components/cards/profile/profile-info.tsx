@@ -17,14 +17,14 @@ const SOCIALS = [
     platform: 'github',
     handle: getAccountHandle(SITE_METADATA.github),
     href: SITE_METADATA.github,
-    Icon: () => <Github size={20} strokeWidth={1.5} />,
+    Icon: () => <Github size={20} strokeWidth={1.5} aria-hidden="true" />,
     umamiEvent: 'profile-card-github',
   },
   {
     platform: 'linkedin',
     handle: getAccountHandle(SITE_METADATA.linkedin),
     href: SITE_METADATA.linkedin,
-    Icon: () => <Linkedin size={20} strokeWidth={1.5} />,
+    Icon: () => <Linkedin size={20} strokeWidth={1.5} aria-hidden="true" />,
     umamiEvent: 'profile-card-linkedin',
   },
   {
@@ -32,7 +32,12 @@ const SOCIALS = [
     handle: getAccountHandle(SITE_METADATA.x),
     href: SITE_METADATA.x,
     Icon: () => (
-      <XIcon className="h-4 w-4" fill="#fff" viewBox="0 0 1200 1227" />
+      <XIcon
+        className="h-4 w-4"
+        fill="#fff"
+        viewBox="0 0 1200 1227"
+        aria-hidden="true"
+      />
     ),
     umamiEvent: 'profile-card-x',
   },
@@ -63,7 +68,10 @@ export function ProfileCardInfo() {
         </div>
         <div className="flex items-center text-gray-700 dark:text-gray-200">
           <Mail strokeWidth={1.5} size={20} />
-          <a className="px-2" href={`mailto:${SITE_METADATA.email}`}>
+          <a
+            className="px-2 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            href={`mailto:${SITE_METADATA.email}`}
+          >
             {SITE_METADATA.email}
           </a>
         </div>
@@ -74,7 +82,7 @@ export function ProfileCardInfo() {
                 target="_blank"
                 href={href}
                 rel="noreferrer"
-                className="flex items-center underline-offset-4 hover:underline"
+                className="flex items-center rounded underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
                 data-umami-event={umamiEvent}
               >
                 <Icon />
