@@ -1,3 +1,5 @@
+export const runtime = 'edge'
+
 import { getNowPlaying } from './spotify'
 
 export async function GET() {
