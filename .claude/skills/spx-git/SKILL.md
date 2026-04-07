@@ -184,7 +184,21 @@ Force push      : no
 Phase 2 — PUSH
 
 1. Run `git push`
-2. Report result
+2. Parse output for PR/MR creation URL (GitHub/GitLab provide this for new branches)
+3. Report result:
+
+```
+PUSH COMPLETE
+═══════════════════════════════════════
+Branch          : feature/xyz
+Commits pushed  : 3
+Remote          : origin/feature/xyz
+
+📝 Create PR: https://github.com/owner/repo/pull/new/feature/xyz
+═══════════════════════════════════════
+```
+
+If the remote output contains a PR/MR URL, always display it prominently.
 
 ---
 
