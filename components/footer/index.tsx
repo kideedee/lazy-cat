@@ -1,11 +1,11 @@
 import { clsx } from 'clsx'
 import { Container } from '~/components/ui/container'
+import { Image } from '~/components/ui/image'
 import { SITE_METADATA } from '~/data/site-metadata'
 import { FooterBottom } from './footer-bottom'
 import { FooterMeta } from './footer-meta'
 import { FooterNav } from './footer-nav'
 import { LogoAndRepo } from './logo-and-repo'
-import { Signature } from './signature'
 
 export function Footer() {
   return (
@@ -22,10 +22,14 @@ export function Footer() {
             {SITE_METADATA.description}
           </div>
           <div className="pt-4">
-            <div className="flex gap-8 py-1.5 md:gap-20">
-              <div className="flex items-center">
-                <Signature className="h-20 w-32 md:w-40" />
-              </div>
+            <div className="flex items-center gap-8 py-1.5 md:gap-20">
+              <Image
+                src={SITE_METADATA.siteLogo}
+                alt="Lazy Cat"
+                width={80}
+                height={80}
+                className="h-20 w-20 rounded-lg"
+              />
               <FooterMeta />
             </div>
           </div>
