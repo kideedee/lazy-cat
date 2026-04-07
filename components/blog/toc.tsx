@@ -22,14 +22,15 @@ export function TableOfContents({
           strokeWidth={1.5}
           size={20}
           className="chevron-right rotate-0 transition-transform"
+          aria-hidden="true"
         />
         <span className="text-lg font-medium">On this page</span>
       </summary>
-      <ul className="flex flex-col space-y-2">
+      <ul className="toc-scroll flex max-h-[calc(100vh-200px)] flex-col space-y-2 overflow-y-auto">
         {toc.map(({ value, depth, url }) => (
           <li
             key={url}
-            className="font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
+            className="font-medium text-gray-500 hover:text-gray-900 focus-within:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 dark:focus-within:text-gray-200 [&_a]:rounded-sm [&_a]:outline-none [&_a]:focus-visible:ring-2 [&_a]:focus-visible:ring-primary-500"
             style={{ paddingLeft: (depth - 2) * 16 }}
           >
             <Link href={url}>{value}</Link>

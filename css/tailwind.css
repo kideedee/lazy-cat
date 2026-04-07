@@ -170,4 +170,31 @@
   .grit-bg-dark {
     background-image: url("/static/images/white-grit.png");
   }
+  /* TOC scrollbar: hidden by default, visible on hover */
+  .toc-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .toc-scroll:hover {
+    scrollbar-color: var(--color-gray-400, #9ca3af) transparent;
+  }
+  .toc-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .toc-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .toc-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 3px;
+  }
+  .toc-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--color-gray-400, #9ca3af);
+  }
+  .dark .toc-scroll:hover {
+    scrollbar-color: var(--color-gray-600, #4b5563) transparent;
+  }
+  .dark .toc-scroll:hover::-webkit-scrollbar-thumb {
+    background: var(--color-gray-600, #4b5563);
+  }
 }

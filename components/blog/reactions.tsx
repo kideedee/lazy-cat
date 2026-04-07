@@ -71,11 +71,11 @@ export function Reactions({
           path={`${type}/${slug}`}
           react={{ emoji, key }}
           value={
-            isLoading
+            isLoading || reactions[key] === undefined
               ? '--'
               : stats[key] + reactions[key] - initialReactions[key]
           }
-          reactions={reactions[key]}
+          reactions={reactions[key] ?? 0}
           onReact={(v) => setReactions((r) => ({ ...r, [key]: v }))}
           onSave={() => handleChange(key)}
         />
