@@ -9,6 +9,9 @@ out/
 dist/
 .contentlayer/
 
+# Generated files
+public/search.json
+
 # Environment files
 .env
 .env.local
