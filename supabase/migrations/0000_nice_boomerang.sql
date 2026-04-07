@@ -1,0 +1,67 @@
+CREATE TYPE "public"."type" AS ENUM('blog', 'snippet');--> statement-breakpoint
+CREATE TABLE "books" (
+	"id" varchar(255) PRIMARY KEY NOT NULL,
+	"guid" varchar(500) NOT NULL,
+	"pub_date" varchar(255) NOT NULL,
+	"title" text NOT NULL,
+	"link" text NOT NULL,
+	"book_image_url" text NOT NULL,
+	"book_small_image_url" text NOT NULL,
+	"book_medium_image_url" text NOT NULL,
+	"book_large_image_url" text NOT NULL,
+	"book_description" text NOT NULL,
+	"author_name" varchar(500) NOT NULL,
+	"isbn" varchar(50),
+	"user_name" varchar(255) NOT NULL,
+	"user_rating" numeric NOT NULL,
+	"user_read_at" varchar(255),
+	"user_date_added" varchar(255) NOT NULL,
+	"user_date_created" varchar(255) NOT NULL,
+	"user_shelves" varchar(500),
+	"user_review" text,
+	"average_rating" numeric NOT NULL,
+	"book_published" varchar(255),
+	"num_pages" integer,
+	"content" text NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "movies" (
+	"id" varchar(255) PRIMARY KEY NOT NULL,
+	"your_rating" numeric NOT NULL,
+	"date_rated" varchar(255) NOT NULL,
+	"title" text NOT NULL,
+	"original_title" text NOT NULL,
+	"url" text NOT NULL,
+	"title_type" varchar(100) NOT NULL,
+	"imdb_rating" numeric NOT NULL,
+	"runtime" numeric NOT NULL,
+	"year" varchar(10),
+	"genres" varchar(500) NOT NULL,
+	"num_votes" numeric NOT NULL,
+	"release_date" varchar(255) NOT NULL,
+	"directors" text NOT NULL,
+	"actors" text NOT NULL,
+	"plot" text NOT NULL,
+	"poster" text NOT NULL,
+	"language" varchar(500) NOT NULL,
+	"country" varchar(500) NOT NULL,
+	"awards" text NOT NULL,
+	"box_office" varchar(100),
+	"total_seasons" varchar(10),
+	"ratings" jsonb NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "stats" (
+	"type" "type" NOT NULL,
+	"slug" varchar(255) NOT NULL,
+	"views" integer DEFAULT 0 NOT NULL,
+	"loves" integer DEFAULT 0 NOT NULL,
+	"applauses" integer DEFAULT 0 NOT NULL,
+	"ideas" integer DEFAULT 0 NOT NULL,
+	"bullseyes" integer DEFAULT 0 NOT NULL,
+	CONSTRAINT "stats_type_slug_pk" PRIMARY KEY("type","slug")
+);
