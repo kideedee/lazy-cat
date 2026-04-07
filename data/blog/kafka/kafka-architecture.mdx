@@ -1,0 +1,470 @@
+---
+title: 'Kafka Architecture: Từ Broker đến KRaft'
+date: '2026-04-07'
+tags: ['kafka', 'architecture', 'kraft']
+summary: 'Deep dive vào kiến trúc Kafka - Broker, Topic, Partition, Replication, ISR, KRaft mode. Hiểu cách Kafka hoạt động từ producer đến consumer.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+> Bài này là phần 2 của [Kafka Series](/blog/kafka). Đọc [tổng quan](/blog/kafka) trước nếu chưa quen với Kafka.
+
+## 1. Core Concepts
+
+### 1.1 Kafka Cluster Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           KAFKA CLUSTER                                  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐               │
+│  │   Broker 1   │    │   Broker 2   │    │   Broker 3   │               │
+│  │  (Controller)│    │              │    │              │               │
+│  ├──────────────┤    ├──────────────┤    ├──────────────┤               │
+│  │ Topic A      │    │ Topic A      │    │ Topic A      │               │
+│  │ ┌──────────┐ │    │ ┌──────────┐ │    │ ┌──────────┐ │               │
+│  │ │ Part 0   │ │    │ │ Part 1   │ │    │ │ Part 2   │ │               │
+│  │ │ (Leader) │ │    │ │ (Leader) │ │    │ │ (Leader) │ │               │
+│  │ └──────────┘ │    │ └──────────┘ │    │ └──────────┘ │               │
+│  │ ┌──────────┐ │    │ ┌──────────┐ │    │ ┌──────────┐ │               │
+│  │ │ Part 1   │ │    │ │ Part 2   │ │    │ │ Part 0   │ │               │
+│  │ │ (Replica)│ │    │ │ (Replica)│ │    │ │ (Replica)│ │               │
+│  │ └──────────┘ │    │ └──────────┘ │    │ └──────────┘ │               │
+│  └──────────────┘    └──────────────┘    └──────────────┘               │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Broker
+
+Broker là một Kafka server instance. Mỗi broker:
+- Lưu trữ data trên disk dưới dạng log segments
+- Xử lý produce/consume requests từ clients
+- Quản lý partition leadership và replication
+- Tham gia vào cluster coordination (KRaft mode)
+
+**Production recommendation:** 3-5 brokers tối thiểu để đảm bảo fault tolerance.
+
+### 1.3 Topic và Partition
+
+**Topic** là logical channel để organize messages theo business domain (ví dụ: `orders`, `user-events`, `payments`).
+
+**Partition** là physical unit của parallelism:
+- Mỗi topic được chia thành nhiều partitions
+- Messages trong một partition được sắp xếp theo offset (sequence number)
+- Partition là đơn vị nhỏ nhất để scale consumers
+
+```
+Topic: orders (3 partitions)
+
+Partition 0: [msg0][msg3][msg6][msg9]...  → Consumer A
+Partition 1: [msg1][msg4][msg7][msg10]... → Consumer B  
+Partition 2: [msg2][msg5][msg8][msg11]... → Consumer C
+```
+
+**Quan trọng:** Messages với cùng key luôn đi vào cùng partition, đảm bảo ordering cho một entity.
+
+### 1.4 Segments
+
+Mỗi partition được chia thành segments - các file log trên disk:
+
+```
+/kafka-logs/orders-0/
+├── 00000000000000000000.log    (segment 0: offsets 0-999)
+├── 00000000000000000000.index
+├── 00000000000000001000.log    (segment 1: offsets 1000-1999)
+├── 00000000000000001000.index
+└── 00000000000000002000.log    (active segment)
+```
+
+- **Active segment**: Segment đang được ghi, chưa thể delete
+- **Closed segments**: Có thể bị xóa theo retention policy (time hoặc size)
+- **Log compaction**: Giữ lại message cuối cùng cho mỗi key
+
+## 2. Replication và ISR
+
+Kafka đảm bảo durability thông qua replication. Mỗi partition có:
+- **Leader**: Xử lý tất cả read/write requests
+- **Followers (Replicas)**: Replicate data từ leader
+
+```
+Partition 0 (replication-factor=3)
+
+┌─────────────┐     replicate     ┌─────────────┐
+│   Broker 1  │ ───────────────→  │   Broker 2  │
+│   (Leader)  │                   │  (Follower) │
+│             │ ───────────────→  │             │
+└─────────────┘     replicate     └─────────────┘
+       │                                 ↑
+       │          ┌─────────────┐        │
+       └────────→ │   Broker 3  │ ───────┘
+         replicate│  (Follower) │  in-sync
+                  └─────────────┘
+```
+
+### 2.1 ISR (In-Sync Replicas)
+
+ISR là tập hợp các replicas đang "bắt kịp" leader:
+- Follower được coi là in-sync nếu đã fetch messages trong khoảng `replica.lag.time.max.ms` (default 30s)
+- Nếu follower lag quá lâu, nó bị loại khỏi ISR
+- `acks=all` chỉ đợi ISR replicas, không phải tất cả replicas
+
+### 2.2 Leader Election
+
+Khi leader fail, Kafka chọn leader mới từ ISR:
+
+1. Controller phát hiện leader offline (qua heartbeat)
+2. Controller chọn replica đầu tiên trong ISR làm leader mới
+3. Controller thông báo cho tất cả brokers về leader mới
+4. Clients refresh metadata và connect đến leader mới
+
+```
+Timeline khi Broker 1 (Leader) fail:
+
+t=0s   Broker 1 stops responding
+t=10s  Controller detects failure (session timeout)
+t=10s  Controller elects Broker 2 (first in ISR) as new leader
+t=10s  Controller updates metadata, notifies all brokers
+t=11s  Producers/Consumers reconnect to Broker 2
+```
+
+**Unclean Leader Election:**
+- Mặc định `unclean.leader.election.enable=false`
+- Nếu bật: cho phép chọn leader từ replica không in-sync → có thể mất data
+- Chỉ bật khi availability quan trọng hơn consistency
+
+## 3. KRaft Architecture
+
+### 3.1 Tạm biệt ZooKeeper
+
+Từ Kafka 4.0 (2025), ZooKeeper đã bị loại bỏ hoàn toàn. KRaft (Kafka Raft) là chế độ consensus mới, tích hợp trực tiếp vào Kafka brokers.
+
+**Tại sao loại bỏ ZooKeeper?**
+- Giảm operational complexity (không cần maintain 2 clusters)
+- Cải thiện scalability (ZooKeeper là bottleneck khi có nhiều partitions)
+- Faster controller failover (seconds → milliseconds)
+- Đơn giản hóa deployment và monitoring
+
+### 3.2 Controller Quorum
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        KRAFT CLUSTER                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                    CONTROLLER QUORUM                             │    │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐             │    │
+│  │  │ Controller 1 │ │ Controller 2 │ │ Controller 3 │             │    │
+│  │  │   (Leader)   │ │  (Follower)  │ │  (Follower)  │             │    │
+│  │  │              │ │              │ │              │             │    │
+│  │  │ __cluster_   │ │ __cluster_   │ │ __cluster_   │             │    │
+│  │  │  metadata    │ │  metadata    │ │  metadata    │             │    │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘             │    │
+│  │         │                │                │                      │    │
+│  │         └────────────────┼────────────────┘                      │    │
+│  │                          │ Raft Consensus                        │    │
+│  └──────────────────────────┼───────────────────────────────────────┘    │
+│                             │                                            │
+│  ┌──────────────────────────┼───────────────────────────────────────┐    │
+│  │                 BROKER NODES                                      │    │
+│  │                          │ Metadata Updates                       │    │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐              │    │
+│  │  │   Broker 1   │ │   Broker 2   │ │   Broker 3   │              │    │
+│  │  │ (data only)  │ │ (data only)  │ │ (data only)  │              │    │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘              │    │
+│  └──────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 3.3 __cluster_metadata Topic
+
+Thay vì lưu metadata trong ZooKeeper, KRaft sử dụng internal topic `__cluster_metadata`:
+- Lưu trữ tất cả cluster metadata (topics, partitions, configs, ACLs)
+- Replicate across controller quorum bằng Raft consensus
+- Brokers subscribe để nhận metadata updates
+
+### 3.4 Deployment Modes
+
+**Combined Mode** (dev/small clusters):
+```yaml
+# Mỗi node vừa là controller vừa là broker
+process.roles=broker,controller
+```
+
+**Isolated Mode** (production):
+```yaml
+# Controllers riêng biệt
+process.roles=controller
+
+# Brokers riêng biệt  
+process.roles=broker
+```
+
+**Best Practice:** Production nên dùng isolated mode với 3 hoặc 5 controllers (số lẻ cho Raft quorum).
+
+### 3.5 ZooKeeper Removal Timeline
+
+| Version | Year | Status |
+|---------|------|--------|
+| Kafka 2.8 | 2021 | KRaft early access (không production-ready) |
+| Kafka 3.3 | 2022 | KRaft production-ready, ZooKeeper deprecated |
+| Kafka 3.5 | 2023 | ZooKeeper migration tools stable |
+| Kafka 4.0 | 2025 | ZooKeeper code removed hoàn toàn |
+
+## 4. Producer Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         PRODUCER FLOW                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────┐   │
+│  │  Record  │ →  │  Serializer  │ →  │ Partitioner  │ →  │  Batch   │   │
+│  │  (K, V)  │    │  (K, V → bytes)│   │              │    │ Accumulator│ │
+│  └──────────┘    └──────────────┘    └──────────────┘    └──────────┘   │
+│                                              │                  │        │
+│                                              ↓                  ↓        │
+│                                    ┌─────────────────┐   ┌──────────┐   │
+│                                    │ Partition 0     │   │  Sender  │   │
+│                                    │ Partition 1     │ ← │  Thread  │   │
+│                                    │ Partition 2     │   └──────────┘   │
+│                                    └─────────────────┘         │        │
+│                                                                ↓        │
+│                                                        ┌──────────────┐ │
+│                                                        │   Broker     │ │
+│                                                        │   (Leader)   │ │
+│                                                        └──────────────┘ │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 4.1 Partitioning Strategies
+
+**1. Key-based (default khi có key):**
+```java
+partition = hash(key) % numPartitions
+```
+→ Messages với cùng key luôn vào cùng partition → ordering guarantee
+
+**2. Round-robin (khi key = null):**
+→ Distribute đều messages across partitions → maximize parallelism
+
+**3. Sticky partitioning (Kafka 2.4+, default cho null key):**
+→ Batch messages vào cùng partition cho đến khi batch đầy → giảm latency
+
+**4. Custom partitioner:**
+```java
+public class GeoPartitioner implements Partitioner {
+    public int partition(String topic, Object key, byte[] keyBytes,
+                         Object value, byte[] valueBytes, Cluster cluster) {
+        String region = extractRegion(value);
+        return regionToPartition.get(region);
+    }
+}
+```
+
+### 4.2 Acks Settings
+
+| Setting | Behavior | Durability | Latency |
+|---------|----------|------------|---------|
+| `acks=0` | Fire-and-forget, không đợi response | Lowest | Lowest |
+| `acks=1` | Đợi leader acknowledge | Medium | Medium |
+| `acks=all` | Đợi tất cả ISR replicas acknowledge | Highest | Highest |
+
+**Production recommendation:** `acks=all` + `min.insync.replicas=2`
+
+### 4.3 Idempotent Producer
+
+Đảm bảo exactly-once semantics tại producer level:
+
+```yaml
+enable.idempotence: true  # Implicit: acks=all, retries=MAX_INT
+
+# Kafka tracks:
+# - Producer ID (PID)
+# - Sequence number per partition
+# → Duplicate detection và ordering guarantee
+```
+
+### 4.4 Batching
+
+```yaml
+batch.size: 16384        # Max batch size in bytes (16KB default)
+linger.ms: 5             # Wait time to fill batch (0 = send immediately)
+compression.type: lz4    # none, gzip, snappy, lz4, zstd
+```
+
+**Trade-off:**
+- `linger.ms=0`: Lower latency, lower throughput
+- `linger.ms=100`: Higher throughput, higher latency
+
+## 5. Consumer Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      CONSUMER GROUP FLOW                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Topic: orders (6 partitions)                                            │
+│  ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐ ┌────┐                              │
+│  │ P0 │ │ P1 │ │ P2 │ │ P3 │ │ P4 │ │ P5 │                              │
+│  └──┬─┘ └──┬─┘ └──┬─┘ └──┬─┘ └──┬─┘ └──┬─┘                              │
+│     │      │      │      │      │      │                                 │
+│     └──────┼──────┘      └──────┼──────┘                                 │
+│            │                    │                                        │
+│            ↓                    ↓                                        │
+│  Consumer Group: order-service                                           │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐      │
+│  │   Consumer 1    │    │   Consumer 2    │    │   Consumer 3    │      │
+│  │   P0, P1        │    │   P2, P3        │    │   P4, P5        │      │
+│  │                 │    │                 │    │                 │      │
+│  │ offset P0: 1000 │    │ offset P2: 500  │    │ offset P4: 750  │      │
+│  │ offset P1: 1200 │    │ offset P3: 600  │    │ offset P5: 800  │      │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘      │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 5.1 Consumer Groups
+
+- Mỗi partition chỉ được consume bởi 1 consumer trong group
+- Số consumers > số partitions → có consumer idle
+- Số consumers < số partitions → consumer xử lý nhiều partitions
+
+**Scaling rule:**
+```
+max_parallelism = min(num_partitions, num_consumers)
+```
+
+### 5.2 Offset Management
+
+```
+Partition 0:
+┌────┬────┬────┬────┬────┬────┬────┬────┬────┬────┐
+│ 0  │ 1  │ 2  │ 3  │ 4  │ 5  │ 6  │ 7  │ 8  │ 9  │ ...
+└────┴────┴────┴────┴────┴────┴────┴────┴────┴────┘
+                    ↑              ↑              ↑
+              committed      current position   log end
+               offset             (5)           offset
+                (3)
+```
+
+**Commit strategies:**
+
+| Strategy | Config | Behavior | Use case |
+|----------|--------|----------|----------|
+| Auto commit | `enable.auto.commit=true` | Commit định kỳ | Simple cases |
+| Sync commit | Manual `commitSync()` | Block until success | Strict ordering |
+| Async commit | Manual `commitAsync()` | Non-blocking | High throughput |
+
+### 5.3 Rebalancing
+
+Rebalance xảy ra khi:
+- Consumer join/leave group
+- Partition thêm/bớt
+- Consumer crash (heartbeat timeout)
+
+**Eager vs Cooperative Rebalancing:**
+
+```
+Eager (stop-the-world):
+t=0   [C1: P0,P1,P2] [C2: P3,P4,P5]  ← C3 joins
+t=1   [C1: ---     ] [C2: ---     ]  ← ALL partitions revoked
+t=2   [C1: P0,P1  ] [C2: P2,P3  ] [C3: P4,P5]  ← Reassigned
+
+Cooperative (incremental):
+t=0   [C1: P0,P1,P2] [C2: P3,P4,P5]  ← C3 joins
+t=1   [C1: P0,P1,P2] [C2: P3,P4   ]  ← Only P5 revoked
+t=2   [C1: P0,P1  ] [C2: P3,P4   ] [C3: P5]  ← P2 migrated
+t=3   [C1: P0,P1  ] [C2: P2,P3   ] [C3: P4,P5]  ← Done
+```
+
+**Recommendation:** Dùng `CooperativeStickyAssignor`:
+```yaml
+partition.assignment.strategy: 
+  org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+```
+
+## 6. Delivery Guarantees
+
+| Semantic | Description | How to achieve | Trade-off |
+|----------|-------------|----------------|-----------|
+| **At-most-once** | Message có thể mất, không duplicate | `acks=0` hoặc commit trước process | Fastest |
+| **At-least-once** | Message không mất, có thể duplicate | `acks=all` + commit sau process | Default choice |
+| **Exactly-once** | Message xử lý đúng 1 lần | Idempotent + Transactions | Slowest |
+
+### 6.1 At-Least-Once (Recommended default)
+
+```java
+// Producer: wait for ack
+producer.send(record, (metadata, exception) -> {
+    if (exception != null) {
+        // Retry or handle error
+    }
+});
+
+// Consumer: commit after process
+consumer.poll();
+processRecords();       // Process first
+consumer.commitSync();  // Then commit - if crash, re-process
+```
+
+### 6.2 Exactly-Once (Transactions)
+
+```java
+// Producer config
+props.put("enable.idempotence", "true");
+props.put("transactional.id", "my-transactional-id");
+
+// Transactional produce
+producer.initTransactions();
+try {
+    producer.beginTransaction();
+    producer.send(record1);
+    producer.send(record2);
+    producer.commitTransaction();
+} catch (Exception e) {
+    producer.abortTransaction();
+}
+
+// Consumer config  
+props.put("isolation.level", "read_committed");
+```
+
+## 7. Log Compaction
+
+Log compaction giữ lại message cuối cùng cho mỗi key:
+
+```
+Before compaction (key: user-id):
+┌─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┐
+│ A:1 │ B:1 │ A:2 │ C:1 │ B:2 │ A:3 │ C:2 │ B:3 │
+└─────┴─────┴─────┴─────┴─────┴─────┴─────┴─────┘
+
+After compaction:
+┌─────┬─────┬─────┐
+│ A:3 │ C:2 │ B:3 │  ← Only latest value per key
+└─────┴─────┴─────┘
+```
+
+**Configuration:**
+```yaml
+cleanup.policy: compact          # Enable compaction
+min.cleanable.dirty.ratio: 0.5   # Trigger when 50% dirty
+delete.retention.ms: 86400000    # Keep tombstones 24h
+```
+
+**Tombstone:** Message với `value=null` signals deletion — key sẽ bị xóa khỏi compacted log sau `delete.retention.ms`.
+
+**Use cases:**
+- Database state sync
+- Cache rebuilding
+- Changelog topics (Kafka Streams)
+- Configuration distribution
+
+---
+
+**Tiếp theo:** [So sánh Kafka với các công nghệ khác](/blog/kafka/kafka-comparison) | [Spring Kafka Guide](/blog/kafka/kafka-spring) | [Quarkus Kafka Guide](/blog/kafka/kafka-quarkus)

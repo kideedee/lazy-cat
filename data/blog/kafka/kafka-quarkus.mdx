@@ -1,0 +1,468 @@
+---
+title: 'Quarkus Kafka: Reactive Messaging Guide'
+date: '2026-04-07'
+tags: ['kafka', 'quarkus', 'reactive']
+summary: 'SmallRye Reactive Messaging cho Quarkus developers. Incoming/Outgoing channels, Emitter patterns, Dev Services, và native compilation.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+> Bài này là phần 5 của [Kafka Series](/blog/kafka). Đọc [kiến trúc Kafka](/blog/kafka/kafka-architecture) để hiểu core concepts.
+
+## 1. Setup
+
+### 1.1 Dependencies
+
+```xml
+<!-- Maven -->
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-messaging-kafka</artifactId>
+</dependency>
+```
+
+```kotlin
+// Gradle
+implementation("io.quarkus:quarkus-messaging-kafka")
+```
+
+### 1.2 Dev Services
+
+Quarkus tự động start Kafka container trong dev mode:
+
+```properties
+# Dev Services (enabled by default)
+quarkus.kafka.devservices.enabled=true
+quarkus.kafka.devservices.image-name=confluentinc/cp-kafka:7.6.0
+quarkus.kafka.devservices.port=9092
+
+# Shared container giữa các services
+quarkus.kafka.devservices.service-name=kafka
+
+# Disable trong test nếu dùng Testcontainers riêng
+%test.quarkus.kafka.devservices.enabled=false
+```
+
+**Lợi ích:**
+- Không cần setup Kafka manually cho development
+- Tự động configure bootstrap.servers
+- Cleanup khi quarkus:dev stops
+
+## 2. Incoming Channel (Consumer)
+
+### 2.1 Configuration
+
+```properties
+# application.properties
+
+# Bootstrap servers (auto-configured nếu dùng Dev Services)
+kafka.bootstrap.servers=localhost:9092
+
+# Incoming channel: orders
+mp.messaging.incoming.orders.connector=smallrye-kafka
+mp.messaging.incoming.orders.topic=orders
+mp.messaging.incoming.orders.group.id=order-service
+
+# Deserialization
+mp.messaging.incoming.orders.value.deserializer=org.apache.kafka.common.serialization.StringDeserializer
+# Hoặc với JSON
+mp.messaging.incoming.orders.value.deserializer=io.quarkus.kafka.client.serialization.ObjectMapperDeserializer
+
+# Commit Strategy
+mp.messaging.incoming.orders.commit-strategy=throttled
+mp.messaging.incoming.orders.auto.commit.interval.ms=5000
+
+# Failure Strategy
+mp.messaging.incoming.orders.failure-strategy=dead-letter-queue
+mp.messaging.incoming.orders.dead-letter-queue.topic=orders-dlq
+
+# Consumer Stability
+mp.messaging.incoming.orders.session.timeout.ms=45000
+mp.messaging.incoming.orders.heartbeat.interval.ms=3000
+mp.messaging.incoming.orders.max.poll.interval.ms=300000
+mp.messaging.incoming.orders.max.poll.records=500
+
+# Concurrency
+mp.messaging.incoming.orders.concurrency=4
+```
+
+### 2.2 Commit Strategies
+
+| Strategy | Behavior |
+|----------|----------|
+| `ignore` | Không commit (manual) |
+| `latest` | Commit offset cuối sau batch |
+| `throttled` | Commit định kỳ (default) |
+
+### 2.3 Failure Strategies
+
+| Strategy | Behavior |
+|----------|----------|
+| `fail` | Stop application (default) |
+| `ignore` | Log và continue |
+| `dead-letter-queue` | Gửi vào DLQ topic |
+
+## 3. @Incoming Patterns
+
+### 3.1 Simple Consumer
+
+```java
+@ApplicationScoped
+public class OrderConsumer {
+    
+    @Incoming("orders")
+    public void consume(Order order) {
+        log.info("Received order: {}", order.getId());
+        processOrder(order);
+    }
+}
+```
+
+### 3.2 With Message (Manual Ack)
+
+```java
+@Incoming("orders")
+public CompletionStage<Void> consumeMessage(Message<Order> message) {
+    try {
+        processOrder(message.getPayload());
+        return message.ack();  // Manual acknowledge
+    } catch (Exception e) {
+        return message.nack(e);  // Negative ack → failure strategy
+    }
+}
+```
+
+### 3.3 Reactive (Mutiny)
+
+```java
+@Incoming("orders")
+public Uni<Void> consumeReactive(Order order) {
+    return processOrderAsync(order)
+        .onFailure().invoke(e -> log.error("Failed to process", e));
+}
+```
+
+### 3.4 With Kafka Metadata
+
+```java
+@Incoming("orders")
+public void consumeWithMetadata(Message<Order> message) {
+    // Get Kafka-specific metadata
+    IncomingKafkaRecordMetadata<String, Order> metadata = 
+        message.getMetadata(IncomingKafkaRecordMetadata.class).orElseThrow();
+    
+    String key = metadata.getKey();
+    int partition = metadata.getPartition();
+    long offset = metadata.getOffset();
+    long timestamp = metadata.getTimestamp();
+    Headers headers = metadata.getHeaders();
+    
+    log.info("Received: key={}, partition={}, offset={}", key, partition, offset);
+    processOrder(message.getPayload());
+}
+```
+
+## 4. Outgoing Channel (Producer)
+
+### 4.1 Configuration
+
+```properties
+# Outgoing channel: notifications
+mp.messaging.outgoing.notifications.connector=smallrye-kafka
+mp.messaging.outgoing.notifications.topic=notifications
+
+# Serialization
+mp.messaging.outgoing.notifications.value.serializer=io.quarkus.kafka.client.serialization.ObjectMapperSerializer
+
+# Durability
+mp.messaging.outgoing.notifications.acks=all
+
+# Batching
+mp.messaging.outgoing.notifications.batch.size=16384
+mp.messaging.outgoing.notifications.linger.ms=5
+
+# Compression
+mp.messaging.outgoing.notifications.compression.type=lz4
+
+# Idempotence
+mp.messaging.outgoing.notifications.enable.idempotence=true
+
+# Wait for writes
+mp.messaging.outgoing.notifications.waitForWriteCompletion=true
+```
+
+## 5. @Outgoing Patterns
+
+### 5.1 Generate Stream
+
+```java
+@ApplicationScoped
+public class NotificationProducer {
+    
+    @Outgoing("notifications")
+    public Multi<Notification> produce() {
+        return Multi.createFrom()
+            .ticks().every(Duration.ofSeconds(1))
+            .map(tick -> new Notification("Heartbeat " + tick));
+    }
+}
+```
+
+### 5.2 Process and Forward
+
+```java
+// Nhận từ orders, gửi đến notifications
+@Incoming("orders")
+@Outgoing("notifications")
+public Notification processAndForward(Order order) {
+    return new Notification("Order received: " + order.getId());
+}
+```
+
+### 5.3 Multi Output
+
+```java
+@Incoming("orders")
+@Outgoing("notifications")
+public Multi<Notification> processToMultiple(Order order) {
+    return Multi.createFrom().items(
+        new Notification("Order created: " + order.getId()),
+        new Notification("Inventory updated for: " + order.getProduct())
+    );
+}
+```
+
+## 6. Emitter (Imperative Producer)
+
+### 6.1 Basic Usage
+
+```java
+@ApplicationScoped
+public class OrderService {
+    
+    @Channel("notifications")
+    Emitter<Notification> emitter;
+    
+    public void sendNotification(Notification notification) {
+        emitter.send(notification);
+    }
+}
+```
+
+### 6.2 With Key and Headers
+
+```java
+public void sendWithKey(String key, Notification notification) {
+    OutgoingKafkaRecordMetadata<String> metadata = 
+        OutgoingKafkaRecordMetadata.<String>builder()
+            .withKey(key)
+            .withHeaders(new RecordHeaders()
+                .add("correlation-id", UUID.randomUUID().toString().getBytes())
+                .add("source", "order-service".getBytes()))
+            .withPartition(0)  // Optional: specific partition
+            .build();
+    
+    emitter.send(Message.of(notification).addMetadata(metadata));
+}
+```
+
+### 6.3 Wait for Acknowledgment
+
+```java
+public CompletionStage<Void> sendAndWait(Notification notification) {
+    return emitter.send(notification).toCompletableFuture();
+}
+
+// Với Mutiny
+public Uni<Void> sendAndWaitUni(Notification notification) {
+    return Uni.createFrom().completionStage(
+        emitter.send(notification).toCompletableFuture()
+    );
+}
+```
+
+### 6.4 MutinyEmitter
+
+```java
+@ApplicationScoped
+public class OrderService {
+    
+    @Channel("notifications")
+    MutinyEmitter<Notification> emitter;
+    
+    public Uni<Void> sendNotification(Notification notification) {
+        return emitter.send(notification);
+    }
+    
+    public Uni<Void> sendWithAck(Notification notification) {
+        return emitter.sendAndAwait(notification);
+    }
+}
+```
+
+## 7. Native Compilation
+
+### 7.1 Register for Reflection
+
+```java
+@RegisterForReflection
+public class Order {
+    private String id;
+    private String product;
+    private BigDecimal amount;
+    
+    // getters, setters...
+}
+
+@RegisterForReflection
+public class Notification {
+    private String message;
+    private Instant timestamp;
+    
+    // getters, setters...
+}
+```
+
+### 7.2 Alternative: reflection-config.json
+
+```json
+[
+  {
+    "name": "com.example.model.Order",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "com.example.model.Notification",
+    "allDeclaredConstructors": true,
+    "allPublicMethods": true,
+    "allDeclaredFields": true
+  }
+]
+```
+
+```properties
+quarkus.native.additional-build-args=\
+  -H:ReflectionConfigurationFiles=reflection-config.json
+```
+
+### 7.3 Build and Test
+
+```bash
+# Build native
+./mvnw package -Pnative
+
+# Test native (quan trọng!)
+./mvnw verify -Pnative
+
+# Run native
+./target/my-app-1.0.0-runner
+```
+
+## 8. Spring vs Quarkus Comparison
+
+| Aspect | Spring Kafka | Quarkus SmallRye |
+|--------|--------------|------------------|
+| **Programming Model** | Imperative + Async | Reactive-first (Mutiny) |
+| **Config Style** | YAML/Properties | Properties (MicroProfile) |
+| **Consumer** | `@KafkaListener` | `@Incoming` |
+| **Producer** | `KafkaTemplate` | `Emitter` / `@Outgoing` |
+| **Error Handling** | `DefaultErrorHandler` + DLT | `failure-strategy` property |
+| **Transactions** | `@Transactional` | Manual with `KafkaTransactions` |
+| **Dev Experience** | Manual Kafka setup | Dev Services auto-start |
+| **Native Support** | Spring Native (beta) | GraalVM native (stable) |
+| **Startup Time** | ~2-5 seconds | ~50-200ms |
+| **Memory** | ~150-300MB | ~30-50MB |
+
+### 8.1 When to Choose
+
+**Choose Spring Kafka:**
+- Team familiar với Spring ecosystem
+- Existing Spring applications
+- Enterprise support cần thiết
+- Batch processing với BatchListener
+
+**Choose Quarkus:**
+- Kubernetes-native deployment
+- Serverless / FaaS environments
+- Fast startup critical
+- Low memory footprint needed
+- Native compilation required
+
+## 9. Security Configuration
+
+### 9.1 SSL/TLS
+
+```properties
+kafka.ssl.truststore.location=/path/to/kafka.truststore.jks
+kafka.ssl.truststore.password=${TRUSTSTORE_PASSWORD}
+kafka.ssl.keystore.location=/path/to/kafka.keystore.jks
+kafka.ssl.keystore.password=${KEYSTORE_PASSWORD}
+kafka.ssl.key.password=${KEY_PASSWORD}
+
+kafka.security.protocol=SSL
+kafka.ssl.endpoint.identification.algorithm=https
+```
+
+### 9.2 SASL/PLAIN
+
+```properties
+kafka.security.protocol=SASL_SSL
+kafka.sasl.mechanism=PLAIN
+kafka.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required \
+  username="${KAFKA_USERNAME}" \
+  password="${KAFKA_PASSWORD}";
+```
+
+### 9.3 SASL/SCRAM-SHA-512
+
+```properties
+kafka.security.protocol=SASL_SSL
+kafka.sasl.mechanism=SCRAM-SHA-512
+kafka.sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+  username="${KAFKA_USERNAME}" \
+  password="${KAFKA_PASSWORD}";
+```
+
+## 10. Production Checklist
+
+### 10.1 Consumer Config
+
+```properties
+# Production-ready consumer
+mp.messaging.incoming.orders.enable.auto.commit=false
+mp.messaging.incoming.orders.auto.offset.reset=earliest
+mp.messaging.incoming.orders.session.timeout.ms=45000
+mp.messaging.incoming.orders.heartbeat.interval.ms=3000
+mp.messaging.incoming.orders.max.poll.interval.ms=300000
+mp.messaging.incoming.orders.failure-strategy=dead-letter-queue
+mp.messaging.incoming.orders.concurrency=4
+```
+
+### 10.2 Producer Config
+
+```properties
+# Production-ready producer
+mp.messaging.outgoing.notifications.acks=all
+mp.messaging.outgoing.notifications.enable.idempotence=true
+mp.messaging.outgoing.notifications.batch.size=16384
+mp.messaging.outgoing.notifications.linger.ms=5
+mp.messaging.outgoing.notifications.compression.type=lz4
+mp.messaging.outgoing.notifications.waitForWriteCompletion=true
+```
+
+### 10.3 Health Checks
+
+```xml
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-smallrye-health</artifactId>
+</dependency>
+```
+
+Kafka health checks are automatically registered.
+
+---
+
+**Tiếp theo:** [Use Cases & Configs](/blog/kafka/kafka-use-cases) | [Spring Kafka Guide](/blog/kafka/kafka-spring)

@@ -1,0 +1,475 @@
+---
+title: 'Kafka Use Cases: 5 Production Configurations'
+date: '2026-04-07'
+tags: ['kafka', 'devops', 'production']
+summary: '5 production use cases với configs chi tiết - High Throughput, Low Latency, Exactly-Once, Event Sourcing, CDC. Kèm consumer stability guide và config cheat sheet.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+> Bài này là phần 6 của [Kafka Series](/blog/kafka). Đọc [Spring](/blog/kafka/kafka-spring) hoặc [Quarkus](/blog/kafka/kafka-quarkus) guide để hiểu config context.
+
+## 1. Consumer Stability
+
+### 1.1 Heartbeat Model
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                    CONSUMER HEARTBEAT MODEL                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Consumer JVM                                                            │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                                                                  │    │
+│  │  ┌─────────────────┐         ┌─────────────────────────────┐   │    │
+│  │  │ Heartbeat Thread│         │      Main Thread            │   │    │
+│  │  │                 │         │                             │   │    │
+│  │  │ Every 3s        │         │  poll() → process → poll() │   │    │
+│  │  │ (heartbeat.     │         │                             │   │    │
+│  │  │  interval.ms)   │         │  Must call poll() within    │   │    │
+│  │  │                 │         │  max.poll.interval.ms       │   │    │
+│  │  └────────┬────────┘         └──────────────┬──────────────┘   │    │
+│  │           │                                  │                  │    │
+│  └───────────┼──────────────────────────────────┼──────────────────┘    │
+│              │                                  │                       │
+│              ↓                                  │                       │
+│  ┌───────────────────┐                          │                       │
+│  │   Group Coord.    │   If no heartbeat in     │                       │
+│  │   (Broker)        │   session.timeout.ms     │                       │
+│  │                   │   → Consumer removed     │                       │
+│  │   session.timeout │   → Rebalance triggered  │                       │
+│  │   = 45s           │                          │                       │
+│  └───────────────────┘                          │                       │
+│              ↑                                  │                       │
+│              │                                  │                       │
+│              └───── If poll() not called ───────┘                       │
+│                     in max.poll.interval.ms                             │
+│                     → Consumer leaves group                             │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Golden Rules
+
+```
+heartbeat.interval.ms ≤ session.timeout.ms / 3
+
+max.poll.interval.ms > (max.poll.records × processing_time_per_record)
+```
+
+### 1.3 Recommended Values
+
+| Config | Default | Production |
+|--------|---------|------------|
+| `session.timeout.ms` | 45000 | 30000-60000 |
+| `heartbeat.interval.ms` | 3000 | session / 3 |
+| `max.poll.interval.ms` | 300000 | Based on processing |
+| `max.poll.records` | 500 | Tune for throughput |
+
+### 1.4 Troubleshooting
+
+**Problem: Consumer kicked from group**
+- Log: "Member has failed to send heartbeat" hoặc "poll() was not invoked within max.poll.interval.ms"
+- Root cause: Processing time > `max.poll.interval.ms`
+
+```yaml
+# Solution 1: Giảm batch size
+max.poll.records: 100
+
+# Solution 2: Tăng poll interval
+max.poll.interval.ms: 600000
+
+# Solution 3 (best): Optimize processing
+# - Async processing
+# - Batch database writes
+# - Parallel processing
+```
+
+**Problem: Network unstable**
+- Log: "Session timed out"
+- Root cause: Heartbeats không đến broker
+
+```yaml
+# Tăng tolerance
+session.timeout.ms: 60000
+heartbeat.interval.ms: 10000
+request.timeout.ms: 60000
+```
+
+**Problem: Consumer lag increasing**
+
+```bash
+# Diagnosis
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 \
+  --describe --group my-group
+```
+
+```yaml
+# Solutions
+fetch.min.bytes: 50000    # Fetch nhiều hơn
+fetch.max.wait.ms: 500
+max.poll.records: 1000
+# + Scale consumers (max = partitions)
+```
+
+## 2. Use Case 1: High Throughput
+
+**Scenario:** Log aggregation, ETL pipelines, metrics collection
+
+**Goal:** Maximum messages per second, accept higher latency
+
+### 2.1 Spring Boot
+
+```yaml
+spring:
+  kafka:
+    producer:
+      acks: 1                      # Leader only (faster)
+      batch-size: 65536            # 64KB batch
+      compression-type: lz4        # Fast compression
+      properties:
+        linger.ms: 50              # Wait to fill batch
+        buffer.memory: 67108864    # 64MB buffer
+    
+    consumer:
+      max-poll-records: 1000
+      properties:
+        fetch.min.bytes: 50000
+        fetch.max.wait.ms: 500
+```
+
+```java
+// Batch consumer
+@KafkaListener(topics = "events", containerFactory = "batchFactory")
+public void consumeBatch(List<Event> events, Acknowledgment ack) {
+    repository.saveAll(events);  // Batch insert
+    ack.acknowledge();
+}
+```
+
+### 2.2 Quarkus
+
+```properties
+# Producer
+mp.messaging.outgoing.events.acks=1
+mp.messaging.outgoing.events.batch.size=65536
+mp.messaging.outgoing.events.linger.ms=50
+mp.messaging.outgoing.events.compression.type=lz4
+mp.messaging.outgoing.events.buffer.memory=67108864
+
+# Consumer
+mp.messaging.incoming.events.max.poll.records=1000
+mp.messaging.incoming.events.fetch.min.bytes=50000
+mp.messaging.incoming.events.fetch.max.wait.ms=500
+mp.messaging.incoming.events.concurrency=8
+```
+
+## 3. Use Case 2: Low Latency
+
+**Scenario:** Real-time notifications, live updates, chat
+
+**Goal:** Minimize latency, send/receive immediately
+
+### 3.1 Spring Boot
+
+```yaml
+spring:
+  kafka:
+    producer:
+      acks: 1
+      batch-size: 0                # No batching
+      properties:
+        linger.ms: 0               # Send immediately
+        compression.type: none     # No CPU overhead
+    
+    consumer:
+      max-poll-records: 1          # Process immediately
+      properties:
+        fetch.min.bytes: 1
+        fetch.max.wait.ms: 0
+```
+
+### 3.2 Quarkus
+
+```properties
+# Producer
+mp.messaging.outgoing.events.acks=1
+mp.messaging.outgoing.events.batch.size=0
+mp.messaging.outgoing.events.linger.ms=0
+mp.messaging.outgoing.events.compression.type=none
+
+# Consumer
+mp.messaging.incoming.events.max.poll.records=1
+mp.messaging.incoming.events.fetch.min.bytes=1
+mp.messaging.incoming.events.fetch.max.wait.ms=0
+```
+
+## 4. Use Case 3: Exactly-Once
+
+**Scenario:** Financial transactions, inventory updates, payment processing
+
+**Goal:** Each message processed exactly once
+
+### 4.1 Spring Boot
+
+```yaml
+spring:
+  kafka:
+    producer:
+      transaction-id-prefix: tx-order-service-
+      properties:
+        enable.idempotence: true
+        acks: all
+        retries: 2147483647
+        max.in.flight.requests.per.connection: 5
+    
+    consumer:
+      properties:
+        isolation.level: read_committed
+        enable.auto.commit: false
+```
+
+```java
+@Service
+@Transactional("kafkaTransactionManager")
+public class OrderService {
+    private final KafkaTemplate<String, Order> kafkaTemplate;
+    private final OrderRepository repository;
+    
+    public void processOrder(Order order) {
+        // Database + Kafka trong cùng transaction
+        repository.save(order);
+        kafkaTemplate.send("orders", order.getId(), order);
+        kafkaTemplate.send("order-events", new OrderCreatedEvent(order));
+        // Exception → both rollback
+    }
+}
+```
+
+### 4.2 Quarkus
+
+```properties
+# Producer
+mp.messaging.outgoing.orders.transactional.id=tx-order-service
+mp.messaging.outgoing.orders.enable.idempotence=true
+mp.messaging.outgoing.orders.acks=all
+
+# Consumer
+mp.messaging.incoming.orders.isolation.level=read_committed
+mp.messaging.incoming.orders.commit-strategy=throttled
+mp.messaging.incoming.orders.auto.commit.interval.ms=100
+```
+
+```java
+@ApplicationScoped
+public class TransactionalOrderService {
+    @Inject
+    KafkaTransactions transactions;
+    
+    public Uni<Void> processOrder(Order order) {
+        return transactions.withTransaction(emitter -> {
+            emitter.send(order);
+            emitter.send(new OrderCreatedEvent(order));
+            return Uni.createFrom().voidItem();
+        });
+    }
+}
+```
+
+## 5. Use Case 4: Event Sourcing
+
+**Scenario:** Audit logs, CQRS, state reconstruction
+
+**Goal:** Kafka as event store with log compaction
+
+### 5.1 Topic Configuration
+
+```bash
+kafka-topics.sh --create \
+  --topic user-events \
+  --partitions 12 \
+  --replication-factor 3 \
+  --config cleanup.policy=compact \
+  --config min.cleanable.dirty.ratio=0.3 \
+  --config segment.ms=3600000 \
+  --config delete.retention.ms=86400000
+```
+
+### 5.2 Implementation
+
+```yaml
+# Spring Boot
+spring:
+  kafka:
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+    consumer:
+      auto-offset-reset: earliest
+      properties:
+        isolation.level: read_committed
+```
+
+```java
+public interface DomainEvent {
+    String getAggregateId();
+    Instant getTimestamp();
+}
+
+@Service
+public class UserEventStore {
+    private final KafkaTemplate<String, DomainEvent> template;
+    
+    public void append(DomainEvent event) {
+        // Key = aggregateId → same partition → ordering
+        template.send("user-events", event.getAggregateId(), event);
+    }
+    
+    public User rebuildState(String userId) {
+        // Consume từ earliest, reduce events to state
+        return events.stream()
+            .filter(e -> e.getAggregateId().equals(userId))
+            .reduce(new User(), User::apply, (a, b) -> b);
+    }
+}
+```
+
+## 6. Use Case 5: CDC (Change Data Capture)
+
+**Scenario:** Database synchronization, real-time replication
+
+**Goal:** Capture database changes and publish to Kafka
+
+### 6.1 Debezium Connector
+
+```json
+{
+  "name": "postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "debezium",
+    "database.password": "${POSTGRES_PASSWORD}",
+    "database.dbname": "orders_db",
+    "topic.prefix": "cdc",
+    "table.include.list": "public.orders,public.order_items",
+    "publication.autocreate.mode": "filtered",
+    "slot.name": "debezium_orders",
+    "transforms": "route",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.route.regex": "cdc.public.(.*)",
+    "transforms.route.replacement": "cdc.$1"
+  }
+}
+```
+
+### 6.2 Consumer
+
+```java
+// Spring Boot
+@KafkaListener(topics = "cdc.orders")
+public void handleOrderChange(String payload) {
+    DebeziumEvent event = parseDebeziumEvent(payload);
+    
+    switch (event.getOperation()) {
+        case "c" -> handleCreate(event.getAfter());
+        case "u" -> handleUpdate(event.getBefore(), event.getAfter());
+        case "d" -> handleDelete(event.getBefore());
+    }
+}
+```
+
+### 6.3 Quarkus Outbox Pattern
+
+```properties
+quarkus.debezium-outbox.table-name=outbox_events
+quarkus.debezium-outbox.id.name=id
+quarkus.debezium-outbox.aggregate-id.name=aggregate_id
+quarkus.debezium-outbox.type.name=type
+quarkus.debezium-outbox.payload.name=payload
+```
+
+## 7. Config Summary Table
+
+### 7.1 Producer Configs
+
+| Use Case | acks | batch.size | linger.ms | compression |
+|----------|------|------------|-----------|-------------|
+| **High Throughput** | 1 | 64KB | 50 | lz4 |
+| **Low Latency** | 1 | 0 | 0 | none |
+| **Exactly-Once** | all | default | default | - |
+| **Event Sourcing** | all | default | default | - |
+| **CDC** | all | default | 100 | - |
+
+### 7.2 Consumer Configs
+
+| Use Case | max.poll.records | fetch.min.bytes | fetch.max.wait.ms | isolation.level |
+|----------|------------------|-----------------|-------------------|-----------------|
+| **High Throughput** | 1000 | 50KB | 500 | - |
+| **Low Latency** | 1 | 1 | 0 | - |
+| **Exactly-Once** | 500 | default | default | read_committed |
+| **Event Sourcing** | 500 | default | default | read_committed |
+| **CDC** | 500 | default | default | read_committed |
+
+## 8. Config Cheat Sheet
+
+### 8.1 Producer Essentials
+
+```yaml
+# Durability
+acks: all              # Maximum durability
+acks: 1                # Balanced
+acks: 0                # Maximum speed
+
+# Exactly-Once
+enable.idempotence: true
+transactional.id: my-tx-id
+
+# Throughput
+batch.size: 65536
+linger.ms: 50
+compression.type: lz4
+buffer.memory: 67108864
+
+# Reliability
+retries: 2147483647
+max.in.flight.requests.per.connection: 5
+delivery.timeout.ms: 120000
+```
+
+### 8.2 Consumer Essentials
+
+```yaml
+# Offset Management
+auto.offset.reset: earliest
+enable.auto.commit: false
+
+# Stability (CRITICAL)
+session.timeout.ms: 45000
+heartbeat.interval.ms: 3000        # ≤ session/3
+max.poll.interval.ms: 300000
+max.poll.records: 500
+
+# Throughput
+fetch.min.bytes: 1
+fetch.max.wait.ms: 500
+max.partition.fetch.bytes: 1048576
+
+# Exactly-Once
+isolation.level: read_committed
+```
+
+### 8.3 Quick Reference
+
+| Goal | Key Configs |
+|------|-------------|
+| **Max Throughput** | `batch.size=64KB, linger.ms=50, max.poll.records=1000` |
+| **Min Latency** | `batch.size=0, linger.ms=0, max.poll.records=1` |
+| **Exactly-Once** | `enable.idempotence=true, acks=all, isolation.level=read_committed` |
+| **Stability** | `heartbeat=session/3, max.poll.interval > processing_time` |
+
+---
+
+**Quay lại:** [Tổng quan Kafka](/blog/kafka) | [Spring Guide](/blog/kafka/kafka-spring) | [Quarkus Guide](/blog/kafka/kafka-quarkus)

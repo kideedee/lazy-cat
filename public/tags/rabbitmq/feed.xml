@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>Code by day, blog by night. Join me on my backend journey as we learn and grow together.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 07 Apr 2026 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/rabbitmq/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-comparison</guid>
+			<title>Kafka vs RabbitMQ vs Pulsar: So Sánh Chi Tiết</title>
+			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-comparison</link>
+			<description>So sánh chi tiết Kafka với RabbitMQ, Pulsar, SQS/Kinesis, Redis Streams. Benchmarks 2025, pricing 2026, và decision matrix để chọn đúng công nghệ.</description>
+			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>kafka</category><category>rabbitmq</category><category>pulsar</category><category>aws</category><category>comparison</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

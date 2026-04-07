@@ -1,0 +1,543 @@
+---
+title: 'Spring Kafka: Production Configuration Guide'
+date: '2026-04-07'
+tags: ['kafka', 'spring', 'java']
+summary: 'Production-ready Spring Kafka configuration. KafkaTemplate, @KafkaListener patterns, error handling với DLT, transactions, và security setup.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+> Bài này là phần 4 của [Kafka Series](/blog/kafka). Đọc [kiến trúc Kafka](/blog/kafka/kafka-architecture) để hiểu core concepts.
+
+## 1. Setup
+
+### 1.1 Dependencies
+
+```xml
+<!-- Maven -->
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+```
+
+```kotlin
+// Gradle
+implementation("org.springframework.kafka:spring-kafka")
+```
+
+### 1.2 Auto-Configuration
+
+Spring Boot auto-configuration tự động:
+- Tạo `KafkaTemplate` bean
+- Configure `DefaultKafkaProducerFactory` và `DefaultKafkaConsumerFactory`
+- Setup `ConcurrentKafkaListenerContainerFactory`
+
+## 2. Producer Configuration
+
+### 2.1 YAML Configuration
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      # Serialization
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      
+      # Durability - đợi tất cả ISR replicas acknowledge
+      acks: all
+      
+      # Retries - số lần retry khi gặp retriable errors
+      retries: 2147483647  # MAX_INT, default khi idempotence=true
+      
+      # Idempotence - đảm bảo exactly-once tại producer
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+      
+      # Batching - trade-off throughput vs latency
+      batch-size: 16384        # 16KB default
+      properties:
+        linger.ms: 5           # Đợi 5ms để fill batch
+      
+      # Compression
+      compression-type: lz4    # none, gzip, snappy, lz4, zstd
+      
+      # Memory
+      buffer-memory: 33554432  # 32MB buffer cho batching
+```
+
+### 2.2 KafkaTemplate Usage
+
+```java
+@Service
+public class OrderProducer {
+    private final KafkaTemplate<String, Order> kafkaTemplate;
+    
+    public OrderProducer(KafkaTemplate<String, Order> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+    
+    // Simple send
+    public void sendOrder(Order order) {
+        kafkaTemplate.send("orders", order.getId(), order);
+    }
+    
+    // With callback
+    public CompletableFuture<SendResult<String, Order>> sendOrderAsync(Order order) {
+        return kafkaTemplate
+            .send("orders", order.getId(), order)
+            .whenComplete((result, ex) -> {
+                if (ex != null) {
+                    log.error("Failed to send order: {}", order.getId(), ex);
+                } else {
+                    log.info("Sent order: {} to partition: {}", 
+                        order.getId(), 
+                        result.getRecordMetadata().partition());
+                }
+            });
+    }
+    
+    // With ProducerRecord for headers
+    public void sendWithHeaders(Order order) {
+        ProducerRecord<String, Order> record = new ProducerRecord<>("orders", order.getId(), order);
+        record.headers().add("correlation-id", UUID.randomUUID().toString().getBytes());
+        record.headers().add("source", "order-service".getBytes());
+        kafkaTemplate.send(record);
+    }
+}
+```
+
+## 3. Consumer Configuration
+
+### 3.1 YAML Configuration
+
+```yaml
+spring:
+  kafka:
+    consumer:
+      # Deserialization
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.example.model"
+      
+      # Consumer Group
+      group-id: my-service
+      
+      # Offset Management
+      auto-offset-reset: earliest  # earliest | latest | none
+      enable-auto-commit: false    # Manual commit for at-least-once
+      
+      # Fetch Configuration
+      fetch-min-size: 1            # Min bytes before return
+      fetch-max-wait: 500ms        # Max wait time
+      max-poll-records: 500        # Max records per poll()
+      
+      # Consumer Stability - CRITICAL
+      properties:
+        session.timeout.ms: 45000       # Broker đợi heartbeat
+        heartbeat.interval.ms: 3000     # Heartbeat frequency (≤ session/3)
+        max.poll.interval.ms: 300000    # Max time giữa 2 poll() calls
+      
+      # Partition Assignment
+      properties:
+        partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+    
+    listener:
+      concurrency: 3              # Consumer threads
+      ack-mode: manual_immediate  # Manual acknowledgment
+```
+
+### 3.2 @KafkaListener Patterns
+
+**Simple Listener:**
+
+```java
+@Component
+public class OrderConsumer {
+    
+    @KafkaListener(topics = "orders", groupId = "order-service")
+    public void consume(Order order) {
+        log.info("Received order: {}", order.getId());
+        processOrder(order);
+    }
+}
+```
+
+**With Manual Acknowledgment:**
+
+```java
+@KafkaListener(topics = "orders", groupId = "order-service")
+public void consumeWithAck(Order order, Acknowledgment ack) {
+    try {
+        processOrder(order);
+        ack.acknowledge();  // Commit offset sau khi process thành công
+    } catch (Exception e) {
+        // Don't ack - message will be redelivered
+        log.error("Failed to process order: {}", order.getId(), e);
+        throw e;
+    }
+}
+```
+
+**Batch Listener:**
+
+```java
+@KafkaListener(topics = "orders", groupId = "order-service",
+               containerFactory = "batchFactory")
+public void consumeBatch(List<Order> orders, Acknowledgment ack) {
+    log.info("Received batch of {} orders", orders.size());
+    
+    // Batch processing
+    orders.forEach(this::processOrder);
+    
+    ack.acknowledge();  // Commit all at once
+}
+
+// Factory configuration
+@Bean
+public ConcurrentKafkaListenerContainerFactory<String, Order> batchFactory(
+        ConsumerFactory<String, Order> cf) {
+    ConcurrentKafkaListenerContainerFactory<String, Order> factory = 
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(cf);
+    factory.setBatchListener(true);
+    return factory;
+}
+```
+
+**With Headers and Metadata:**
+
+```java
+@KafkaListener(topics = "orders")
+public void consumeWithMetadata(
+        @Payload Order order,
+        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+        @Header(KafkaHeaders.RECEIVED_PARTITION) int partition,
+        @Header(KafkaHeaders.OFFSET) long offset,
+        @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timestamp) {
+    
+    log.info("Received from {}-{} at offset {} (ts: {})", 
+        topic, partition, offset, timestamp);
+    processOrder(order);
+}
+```
+
+**Multiple Topics:**
+
+```java
+@KafkaListener(topics = {"orders", "payments", "shipments"})
+public void consumeMultipleTopics(
+        @Payload String message,
+        @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    
+    switch (topic) {
+        case "orders" -> processOrder(message);
+        case "payments" -> processPayment(message);
+        case "shipments" -> processShipment(message);
+    }
+}
+```
+
+## 4. Error Handling và Dead Letter Topic
+
+### 4.1 DefaultErrorHandler với DLT
+
+```java
+@Configuration
+public class KafkaErrorConfig {
+    
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<String, Object> template) {
+        // Dead Letter Topic publisher
+        DeadLetterPublishingRecoverer recoverer = 
+            new DeadLetterPublishingRecoverer(template,
+                (record, ex) -> new TopicPartition(
+                    record.topic() + ".DLT",  // orders → orders.DLT
+                    record.partition()
+                ));
+        
+        // Retry 3 times với fixed backoff, sau đó gửi DLT
+        return new DefaultErrorHandler(
+            recoverer,
+            new FixedBackOff(1000L, 3)  // 1s interval, 3 retries
+        );
+    }
+}
+```
+
+### 4.2 Exponential Backoff
+
+```java
+@Bean
+public ConcurrentKafkaListenerContainerFactory<String, String> 
+       retryContainerFactory(ConsumerFactory<String, String> cf) {
+    
+    ConcurrentKafkaListenerContainerFactory<String, String> factory = 
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(cf);
+    
+    // Exponential backoff: 100ms, 200ms, 400ms, 800ms...
+    factory.setCommonErrorHandler(new DefaultErrorHandler(
+        new ExponentialBackOff(100L, 2.0)
+    ));
+    
+    return factory;
+}
+```
+
+### 4.3 DLT Consumer
+
+```java
+@KafkaListener(topics = "orders.DLT", groupId = "dlt-processor")
+public void processDlt(
+        ConsumerRecord<String, Order> record,
+        @Header(KafkaHeaders.DLT_EXCEPTION_MESSAGE) String errorMessage,
+        @Header(KafkaHeaders.DLT_ORIGINAL_TOPIC) String originalTopic) {
+    
+    log.error("DLT received from {}: {} - Error: {}", 
+        originalTopic, record.value(), errorMessage);
+    
+    // Options:
+    // 1. Store for manual review
+    // 2. Alert operations team
+    // 3. Attempt alternative processing
+    // 4. Log and discard
+    
+    alertService.sendAlert("DLT message received", record.value());
+}
+```
+
+### 4.4 Selective Error Handling
+
+```java
+@Bean
+public DefaultErrorHandler selectiveErrorHandler(
+        KafkaTemplate<String, Object> template) {
+    
+    DeadLetterPublishingRecoverer recoverer = 
+        new DeadLetterPublishingRecoverer(template);
+    
+    DefaultErrorHandler handler = new DefaultErrorHandler(
+        recoverer,
+        new FixedBackOff(1000L, 3)
+    );
+    
+    // Không retry cho những exceptions này
+    handler.addNotRetryableExceptions(
+        ValidationException.class,
+        IllegalArgumentException.class
+    );
+    
+    // Retry cho những exceptions này
+    handler.addRetryableExceptions(
+        TransientDataAccessException.class,
+        IOException.class
+    );
+    
+    return handler;
+}
+```
+
+## 5. Transactions
+
+### 5.1 Configuration
+
+```yaml
+spring:
+  kafka:
+    producer:
+      transaction-id-prefix: tx-order-service-
+    consumer:
+      properties:
+        isolation.level: read_committed
+```
+
+### 5.2 Transactional Service
+
+```java
+@Service
+public class TransactionalOrderService {
+    private final KafkaTemplate<String, Order> kafkaTemplate;
+    
+    @Transactional("kafkaTransactionManager")
+    public void processOrder(Order order) {
+        // Tất cả sends trong method này là atomic
+        kafkaTemplate.send("orders", order.getId(), order);
+        kafkaTemplate.send("order-events", new OrderCreatedEvent(order));
+        kafkaTemplate.send("notifications", new NotificationRequest(order));
+        
+        // Nếu exception → tất cả rollback
+    }
+}
+```
+
+### 5.3 Explicit Transaction
+
+```java
+public void processWithExplicitTx(Order order) {
+    kafkaTemplate.executeInTransaction(ops -> {
+        ops.send("orders", order.getId(), order);
+        ops.send("order-events", new OrderCreatedEvent(order));
+        
+        // Có thể throw exception để rollback
+        if (order.getAmount() < 0) {
+            throw new IllegalArgumentException("Invalid amount");
+        }
+        
+        return true;
+    });
+}
+```
+
+### 5.4 Kafka + Database Transaction
+
+```java
+@Service
+public class OrderService {
+    private final KafkaTemplate<String, Order> kafkaTemplate;
+    private final OrderRepository repository;
+    
+    @Transactional  // JPA transaction
+    public void createOrder(Order order) {
+        // Save to database
+        repository.save(order);
+        
+        // Send to Kafka (trong Kafka transaction)
+        kafkaTemplate.executeInTransaction(ops -> {
+            ops.send("orders", order.getId(), order);
+            return true;
+        });
+        
+        // Nếu Kafka fails, JPA cũng rollback (nếu cùng transaction manager)
+    }
+}
+```
+
+## 6. Security
+
+### 6.1 SSL/TLS Configuration
+
+```yaml
+spring:
+  kafka:
+    ssl:
+      trust-store-location: classpath:kafka.truststore.jks
+      trust-store-password: ${TRUSTSTORE_PASSWORD}
+      key-store-location: classpath:kafka.keystore.jks
+      key-store-password: ${KEYSTORE_PASSWORD}
+      key-password: ${KEY_PASSWORD}
+    
+    security:
+      protocol: SSL
+    
+    properties:
+      ssl.endpoint.identification.algorithm: https
+```
+
+### 6.2 SASL/PLAIN Authentication
+
+```yaml
+spring:
+  kafka:
+    security:
+      protocol: SASL_SSL
+    properties:
+      sasl.mechanism: PLAIN
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="${KAFKA_USERNAME}"
+        password="${KAFKA_PASSWORD}";
+```
+
+### 6.3 SASL/SCRAM-SHA-512 (More Secure)
+
+```yaml
+spring:
+  kafka:
+    security:
+      protocol: SASL_SSL
+    properties:
+      sasl.mechanism: SCRAM-SHA-512
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.scram.ScramLoginModule required
+        username="${KAFKA_USERNAME}"
+        password="${KAFKA_PASSWORD}";
+```
+
+### 6.4 OAUTHBEARER (OAuth 2.0)
+
+```yaml
+spring:
+  kafka:
+    security:
+      protocol: SASL_SSL
+    properties:
+      sasl.mechanism: OAUTHBEARER
+      sasl.oauthbearer.token.endpoint.url: https://auth.example.com/oauth/token
+      sasl.jaas.config: >
+        org.apache.kafka.common.security.oauthbearer.OAuthBearerLoginModule required
+        clientId="${CLIENT_ID}"
+        clientSecret="${CLIENT_SECRET}"
+        scope="kafka";
+```
+
+## 7. Production Checklist
+
+### 7.1 Producer
+
+```yaml
+# Production-ready producer config
+spring:
+  kafka:
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.in.flight.requests.per.connection: 5
+      retries: 2147483647
+      batch-size: 16384
+      properties:
+        linger.ms: 5
+      compression-type: lz4
+```
+
+### 7.2 Consumer
+
+```yaml
+# Production-ready consumer config
+spring:
+  kafka:
+    consumer:
+      enable-auto-commit: false
+      auto-offset-reset: earliest
+      properties:
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 3000
+        max.poll.interval.ms: 300000
+        partition.assignment.strategy: org.apache.kafka.clients.consumer.CooperativeStickyAssignor
+    listener:
+      ack-mode: manual_immediate
+      concurrency: 3  # = số partitions
+```
+
+### 7.3 Monitoring
+
+```java
+// Expose Kafka metrics via Micrometer
+@Configuration
+public class KafkaMetricsConfig {
+    
+    @Bean
+    public MeterBinder kafkaClientMetrics(KafkaTemplate<?, ?> kafkaTemplate) {
+        return new KafkaClientMetrics(kafkaTemplate.getProducerFactory().createProducer());
+    }
+}
+```
+
+---
+
+**Tiếp theo:** [Quarkus Kafka Guide](/blog/kafka/kafka-quarkus) | [Use Cases & Configs](/blog/kafka/kafka-use-cases)

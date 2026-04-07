@@ -1,0 +1,165 @@
+---
+title: 'Apache Kafka: Tất Cả Những Gì Bạn Cần Biết'
+date: '2026-04-07'
+tags: ['kafka', 'messaging', 'event-driven']
+summary: 'Tổng quan nhanh về Apache Kafka - event streaming platform phổ biến nhất. Hiểu core concepts, khi nào nên dùng, và bắt đầu trong 5 phút.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+## Kafka là gì?
+
+Apache Kafka là một **distributed event streaming platform** - nền tảng xử lý và truyền tải events theo thời gian thực. Ra đời tại LinkedIn năm 2011, Kafka giải quyết bài toán truyền dữ liệu giữa các services với throughput cực cao và độ tin cậy tuyệt đối.
+
+**Quy mô thực tế (2025):**
+
+- **LinkedIn**: 7 trillion messages/day, 4,000+ brokers, 7 triệu partitions
+- **Netflix**: 1.1 trillion messages/day, phục vụ 300M+ subscribers
+- **Uber**: Millions events/second cho real-time ride tracking và pricing
+- **Market share**: 18% thị trường big data, 1/3 Fortune 500 sử dụng
+
+## Core Concepts
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       KAFKA CLUSTER                              │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐   ┌─────────────┐   ┌─────────────┐            │
+│  │  Broker 1   │   │  Broker 2   │   │  Broker 3   │            │
+│  │             │   │             │   │             │            │
+│  │ Topic: orders                                    │            │
+│  │ ┌─────────┐ │   │ ┌─────────┐ │   │ ┌─────────┐ │            │
+│  │ │ Part 0  │ │   │ │ Part 1  │ │   │ │ Part 2  │ │            │
+│  │ │(Leader) │ │   │ │(Leader) │ │   │ │(Leader) │ │            │
+│  │ └─────────┘ │   │ └─────────┘ │   │ └─────────┘ │            │
+│  └─────────────┘   └─────────────┘   └─────────────┘            │
+│         ↑                 ↑                 ↑                    │
+│         │                 │                 │                    │
+│  ┌──────┴─────────────────┴─────────────────┴──────┐            │
+│  │              Consumer Group: order-service       │            │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐       │            │
+│  │  │Consumer 1│  │Consumer 2│  │Consumer 3│       │            │
+│  │  │  (P0)    │  │  (P1)    │  │  (P2)    │       │            │
+│  │  └──────────┘  └──────────┘  └──────────┘       │            │
+│  └──────────────────────────────────────────────────┘            │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Thuật ngữ chính:**
+
+| Concept | Mô tả |
+|---------|-------|
+| **Broker** | Kafka server - lưu trữ và phục vụ messages |
+| **Topic** | Logical channel cho messages (VD: `orders`, `user-events`) |
+| **Partition** | Đơn vị parallelism - mỗi topic có nhiều partitions |
+| **Consumer Group** | Nhóm consumers chia nhau xử lý partitions |
+| **Offset** | Vị trí message trong partition (như sequence number) |
+
+## Khi Nào Dùng Kafka?
+
+### ✅ Dùng Kafka khi:
+
+- **High throughput** cần xử lý >10K messages/second
+- **Event replay** cần khả năng đọc lại events đã xảy ra
+- **Multiple consumers** nhiều services cần cùng data stream
+- **Data pipelines** ETL, CDC, log aggregation
+- **Event-driven architecture** microservices giao tiếp qua events
+
+### ❌ Không dùng Kafka khi:
+
+- **Sub-millisecond latency** cần response dưới 1ms → dùng Redis
+- **Complex routing** cần routing phức tạp → dùng RabbitMQ
+- **Small scale** dưới 1K messages/second → overkill
+- **Request/reply pattern** synchronous calls → REST/gRPC đơn giản hơn
+- **Serverless preferred** muốn managed hoàn toàn → SQS/SNS
+
+## So Sánh Nhanh
+
+| | Kafka | RabbitMQ | Pulsar | SQS/Kinesis |
+|---|:---:|:---:|:---:|:---:|
+| **Throughput** | Millions/s | 10K-50K/s | Millions/s | Limited |
+| **Latency** | ~5-10ms | ~1ms | ~5-10ms | ~10-100ms |
+| **Replay** | ✅ | ❌ | ✅ | Partial |
+| **Routing** | Basic | Advanced | Medium | Basic |
+| **Managed** | MSK/Confluent | CloudAMQP | StreamNative | Native AWS |
+
+**Chọn nhanh:**
+- Event streaming, high volume → **Kafka**
+- Task queues, routing phức tạp → **RabbitMQ**
+- Multi-tenant, geo-replication → **Pulsar**
+- AWS-native, zero ops → **SQS/Kinesis**
+
+## Getting Started
+
+### Docker Compose
+
+```yaml
+# docker-compose.yml
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    ports:
+      - "9092:9092"
+```
+
+### Producer (Java)
+
+```java
+Properties props = new Properties();
+props.put("bootstrap.servers", "localhost:9092");
+props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+Producer<String, String> producer = new KafkaProducer<>(props);
+producer.send(new ProducerRecord<>("orders", "order-123", "{\"amount\": 100}"));
+producer.close();
+```
+
+### Consumer (Java)
+
+```java
+Properties props = new Properties();
+props.put("bootstrap.servers", "localhost:9092");
+props.put("group.id", "order-service");
+props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
+Consumer<String, String> consumer = new KafkaConsumer<>(props);
+consumer.subscribe(Arrays.asList("orders"));
+
+while (true) {
+    ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+    for (ConsumerRecord<String, String> record : records) {
+        System.out.println(record.key() + ": " + record.value());
+    }
+}
+```
+
+## Deep Dives
+
+Muốn tìm hiểu sâu hơn? Chọn topic bạn quan tâm:
+
+### [Kiến Trúc Kafka](/blog/kafka/kafka-architecture)
+Broker, Topic, Partition, Replication, KRaft mode (Kafka 4.0). Hiểu cách Kafka hoạt động bên trong.
+
+### [So Sánh Chi Tiết](/blog/kafka/kafka-comparison)
+Kafka vs RabbitMQ vs Pulsar vs SQS/Kinesis vs Redis Streams. Benchmarks, pricing, decision matrix.
+
+### [Spring Kafka Guide](/blog/kafka/kafka-spring)
+Production configuration cho Spring developers. KafkaTemplate, @KafkaListener, error handling, transactions.
+
+### [Quarkus Kafka Guide](/blog/kafka/kafka-quarkus)
+SmallRye Reactive Messaging cho Quarkus developers. Emitter, channels, Dev Services, native compilation.
+
+### [Use Cases & Configs](/blog/kafka/kafka-use-cases)
+5 production use cases với configs chi tiết: High Throughput, Low Latency, Exactly-Once, Event Sourcing, CDC.

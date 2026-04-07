@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>Code by day, blog by night. Join me on my backend journey as we learn and grow together.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 07 Apr 2026 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/kraft/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-architecture</guid>
+			<title>Kafka Architecture: Từ Broker đến KRaft</title>
+			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-architecture</link>
+			<description>Deep dive vào kiến trúc Kafka - Broker, Topic, Partition, Replication, ISR, KRaft mode. Hiểu cách Kafka hoạt động từ producer đến consumer.</description>
+			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>kafka</category><category>architecture</category><category>kraft</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

@@ -1,0 +1,317 @@
+---
+title: 'Kafka vs RabbitMQ vs Pulsar: So Sánh Chi Tiết'
+date: '2026-04-07'
+tags: ['kafka', 'rabbitmq', 'pulsar', 'aws', 'comparison']
+summary: 'So sánh chi tiết Kafka với RabbitMQ, Pulsar, SQS/Kinesis, Redis Streams. Benchmarks 2025, pricing 2026, và decision matrix để chọn đúng công nghệ.'
+images: ['/static/images/kafka-thumbnail.png']
+authors: ['default']
+---
+
+> Bài này là phần 3 của [Kafka Series](/blog/kafka). Đọc [tổng quan](/blog/kafka) trước nếu chưa quen với Kafka.
+
+## 1. Kafka vs RabbitMQ
+
+### 1.1 Architectural Differences
+
+| Aspect | Kafka | RabbitMQ |
+|--------|-------|----------|
+| **Model** | Distributed log, pull-based | Message broker, push-based |
+| **Storage** | Append-only log trên disk | Queue trong memory (optional disk) |
+| **Message Lifetime** | Configurable retention (days/forever) | Deleted after consumed |
+| **Consumer Model** | Pull (consumer chủ động poll) | Push (broker đẩy đến consumer) |
+
+```
+KAFKA MODEL:
+┌─────────────────────────────────────────┐
+│  Log (immutable, append-only)           │
+│  [msg1][msg2][msg3][msg4][msg5]...      │
+│       ↑              ↑                  │
+│  Consumer A      Consumer B             │
+│  (offset 2)      (offset 4)             │
+└─────────────────────────────────────────┘
+→ Multiple consumers read same log independently
+
+RABBITMQ MODEL:
+┌─────────────────────────────────────────┐
+│  Queue (mutable, messages removed)      │
+│  [msg3][msg4][msg5]                     │
+│       ↓                                 │
+│  Consumer (receives, message deleted)   │
+└─────────────────────────────────────────┘
+→ Message gone after acknowledgment
+```
+
+### 1.2 Performance Comparison (2025)
+
+| Metric | Kafka 4.0 | RabbitMQ 4.x |
+|--------|-----------|--------------|
+| **Throughput** | Millions msg/s | 10K-50K msg/s per node |
+| **Latency (p99)** | 5-10ms (với batching) | 1-2ms |
+| **Max Partitions** | Millions (KRaft mode) | N/A (queue-based) |
+| **Ordering** | Per partition | Per queue |
+
+### 1.3 Feature Comparison
+
+| Feature | Kafka | RabbitMQ |
+|---------|-------|----------|
+| **Message Replay** | ✅ Any offset | ❌ Gone after consume |
+| **Routing** | Topic only | ✅ Exchanges, bindings, routing keys |
+| **Priority Queue** | ❌ | ✅ Native support |
+| **Dead Letter** | Manual setup | ✅ Built-in DLX |
+| **Protocol** | Custom binary | AMQP, MQTT, STOMP |
+| **Transactions** | ✅ Exactly-once | ✅ Publisher confirms |
+
+### 1.4 When to Choose
+
+**Choose Kafka:**
+- High throughput (>10K msg/s)
+- Event replay/event sourcing cần thiết
+- Multiple consumers cùng data stream
+- Log aggregation, data pipelines
+- Event-driven microservices
+
+**Choose RabbitMQ:**
+- Complex routing patterns (topic, headers, fanout)
+- Request/reply patterns
+- Priority-based processing
+- Low latency critical (dưới 5ms)
+- Simpler operational model
+
+## 2. Kafka vs Apache Pulsar
+
+### 2.1 Architecture Comparison
+
+```
+KAFKA ARCHITECTURE:
+┌─────────────────────────────────────┐
+│  Broker 1    Broker 2    Broker 3   │
+│  ┌───────┐  ┌───────┐  ┌───────┐   │
+│  │ Data  │  │ Data  │  │ Data  │   │
+│  │Storage│  │Storage│  │Storage│   │
+│  └───────┘  └───────┘  └───────┘   │
+│  + Controller Quorum (KRaft)        │
+└─────────────────────────────────────┘
+→ Brokers = Storage + Serving
+
+PULSAR ARCHITECTURE:
+┌─────────────────────────────────────┐
+│  Broker 1    Broker 2    Broker 3   │
+│  (stateless, no storage)            │
+│         ↓          ↓         ↓      │
+│  ┌───────────────────────────────┐  │
+│  │        BookKeeper             │  │
+│  │  Bookie 1  Bookie 2  Bookie 3 │  │
+│  │  (storage) (storage) (storage)│  │
+│  └───────────────────────────────┘  │
+│  + ZooKeeper (hoặc Oxia)            │
+└─────────────────────────────────────┘
+→ Compute và Storage tách biệt
+```
+
+### 2.2 Feature Comparison
+
+| Feature | Kafka 4.0 | Pulsar 3.x |
+|---------|-----------|------------|
+| **Multi-tenancy** | Limited (namespace-level) | ✅ Native (tenants, namespaces) |
+| **Geo-replication** | MirrorMaker 2 (async) | ✅ Built-in (sync possible) |
+| **Tiered Storage** | Add-on (Confluent) | ✅ Built-in |
+| **Schema** | External (Schema Registry) | ✅ Built-in |
+| **Queue Mode** | Log only | ✅ Log + Shared subscription |
+| **Ops Complexity** | Medium (simplified by KRaft) | Higher (more components) |
+| **Ecosystem** | ★★★★★ Mature | ★★★☆☆ Growing |
+
+### 2.3 When to Choose
+
+**Choose Kafka:**
+- Mature ecosystem, extensive tooling needed
+- Team đã có Kafka experience
+- Simpler operational model (với KRaft)
+- Community support quan trọng
+
+**Choose Pulsar:**
+- Multi-tenant SaaS platform
+- Native geo-replication across regions
+- Tiered storage (hot/warm/cold) built-in
+- Mixed workloads (streaming + queuing)
+
+## 3. Kafka vs AWS Services
+
+### 3.1 Service Overview
+
+| Service | Type | Use Case |
+|---------|------|----------|
+| **Amazon MSK** | Managed Kafka | Kafka workloads trên AWS |
+| **Amazon Kinesis** | Managed stream | AWS-native streaming |
+| **Amazon SQS** | Managed queue | Simple message queuing |
+| **Amazon SNS** | Managed pub/sub | Fan-out notifications |
+
+### 3.2 Feature Comparison
+
+| Feature | Self-Hosted Kafka | Amazon MSK | Kinesis | SQS |
+|---------|-------------------|------------|---------|-----|
+| **API** | Kafka native | Kafka native | Proprietary | Proprietary |
+| **Throughput** | Unlimited | Unlimited | 1MB/s/shard | ~3K msg/s/queue |
+| **Retention** | Configurable | Configurable | 7 days max | 14 days max |
+| **Replay** | ✅ | ✅ | ✅ | ❌ |
+| **Ordering** | Per partition | Per partition | Per shard | FIFO only |
+| **Ops** | Self-managed | Managed | Fully managed | Fully managed |
+
+### 3.3 Pricing Comparison (2026)
+
+**Monthly cost estimates:**
+
+| Scale | Self-Hosted Kafka | Amazon MSK | Ratio |
+|-------|-------------------|------------|-------|
+| **3 brokers** (~45 MB/s) | ~$571 | ~$1,045 | 1.8x |
+| **9 brokers** (~140 MB/s) | ~$1,567 | ~$3,135 | 2x |
+| **30 brokers** (~1.8 GB/s) | ~$8,820 | ~$37,257 | **4.2x** |
+
+*Note: Self-hosted includes EC2, EBS, networking. MSK includes broker hours, storage, data transfer.*
+
+**Key insights:**
+- MSK có giá **2-4x** so với self-hosted
+- Chi phí tăng nhanh hơn ở large scale
+- Trade-off: Ops complexity vs cost
+
+### 3.4 Kinesis Limitations
+
+```
+KINESIS SHARD LIMIT:
+┌──────────────────────────────────────────────┐
+│  Shard 1: 1 MB/s write, 2 MB/s read         │
+│  Shard 2: 1 MB/s write, 2 MB/s read         │
+│  Shard 3: 1 MB/s write, 2 MB/s read         │
+│  ...                                         │
+│  → Need more throughput? Add more shards    │
+│  → Resharding is not instantaneous          │
+└──────────────────────────────────────────────┘
+```
+
+**Kinesis constraints:**
+- Hard limit: 1 MB/s write per shard
+- Resharding takes time (không instant)
+- Proprietary API = vendor lock-in
+- 7 days max retention
+
+### 3.5 When to Choose
+
+**Choose Self-Hosted Kafka:**
+- Cost-sensitive at scale
+- Mature DevOps team
+- Need full control
+- Multi-cloud strategy
+
+**Choose Amazon MSK:**
+- AWS-centric, want Kafka API
+- Limited DevOps capacity
+- Acceptable cost premium (2-4x)
+
+**Choose Kinesis:**
+- Pure AWS-native workload
+- Bursty, small-medium throughput
+- Lambda integration needed
+- Accept proprietary API
+
+**Choose SQS:**
+- Simple queuing only
+- No replay needed
+- Serverless architecture
+- AWS Lambda triggers
+
+## 4. Kafka vs Redis Streams
+
+### 4.1 Architecture Comparison
+
+| Aspect | Kafka | Redis Streams |
+|--------|-------|---------------|
+| **Primary Use** | Event streaming | Caching + Streams |
+| **Storage** | Disk (durable) | Memory (optional persistence) |
+| **Data Model** | Distributed log | In-memory stream |
+| **Clustering** | Native | Redis Cluster |
+
+### 4.2 Performance Comparison
+
+| Metric | Kafka | Redis Streams |
+|--------|-------|---------------|
+| **Throughput** | Millions msg/s | Millions msg/s (memory-bound) |
+| **Latency** | 5-10ms | **Sub-millisecond** |
+| **Retention** | Configurable (TB+) | Memory-limited |
+| **Durability** | ★★★★★ | ★★★☆☆ |
+
+### 4.3 Feature Comparison
+
+| Feature | Kafka | Redis Streams |
+|---------|-------|---------------|
+| **Consumer Groups** | ✅ | ✅ |
+| **Message Replay** | ✅ | ✅ (memory-limited) |
+| **Persistence** | Always | Optional (RDB/AOF) |
+| **Exactly-Once** | ✅ Transactions | ❌ |
+| **Geo-Replication** | MirrorMaker | Active-Active |
+
+### 4.4 When to Choose
+
+**Choose Kafka:**
+- Durability critical (financial data, audit logs)
+- Large data volumes (TB+)
+- Long retention needed
+- Exactly-once semantics required
+
+**Choose Redis Streams:**
+- Sub-millisecond latency critical
+- Data fits in memory
+- Already using Redis for caching
+- Simpler operational model
+
+## 5. Decision Matrix
+
+### 5.1 Summary Table
+
+| | Kafka | RabbitMQ | Pulsar | SQS/Kinesis | Redis |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **Throughput** | ★★★★★ | ★★★☆☆ | ★★★★★ | ★★★☆☆ | ★★★★★ |
+| **Latency** | ★★★☆☆ | ★★★★☆ | ★★★☆☆ | ★★★☆☆ | ★★★★★ |
+| **Durability** | ★★★★★ | ★★★★☆ | ★★★★★ | ★★★★☆ | ★★★☆☆ |
+| **Replay** | ★★★★★ | ☆☆☆☆☆ | ★★★★★ | ★★★★☆ | ★★★☆☆ |
+| **Routing** | ★★☆☆☆ | ★★★★★ | ★★★☆☆ | ★★☆☆☆ | ★★☆☆☆ |
+| **Multi-tenant** | ★★☆☆☆ | ★★☆☆☆ | ★★★★★ | ★★★☆☆ | ★★☆☆☆ |
+| **Ops Simplicity** | ★★★☆☆ | ★★★★☆ | ★★☆☆☆ | ★★★★★ | ★★★★☆ |
+| **Ecosystem** | ★★★★★ | ★★★★☆ | ★★★☆☆ | ★★★★☆ | ★★★★☆ |
+
+### 5.2 Decision Flowchart
+
+```
+START: What do you need?
+│
+├─→ High throughput event streaming?
+│   └─→ YES → Kafka (default choice)
+│
+├─→ Complex routing patterns?
+│   └─→ YES → RabbitMQ
+│
+├─→ Multi-tenant SaaS platform?
+│   └─→ YES → Pulsar
+│
+├─→ AWS-native, zero ops?
+│   └─→ YES → SQS/Kinesis/MSK
+│
+├─→ Sub-millisecond latency?
+│   └─→ YES → Redis Streams
+│
+└─→ Default: Kafka
+```
+
+### 5.3 Quick Decision Guide
+
+| Scenario | Recommendation |
+|----------|----------------|
+| **Event streaming, high volume** | Kafka |
+| **Task queues, routing** | RabbitMQ |
+| **Multi-tenant, geo-distributed** | Pulsar |
+| **AWS-native, managed** | MSK or Kinesis |
+| **Speed critical, in-memory OK** | Redis Streams |
+| **Simple queue, serverless** | SQS |
+| **Fan-out pub/sub** | SNS |
+
+---
+
+**Tiếp theo:** [Spring Kafka Guide](/blog/kafka/kafka-spring) | [Quarkus Kafka Guide](/blog/kafka/kafka-quarkus) | [Use Cases & Configs](/blog/kafka/kafka-use-cases)
