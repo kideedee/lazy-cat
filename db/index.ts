@@ -7,5 +7,7 @@ const globalForDb = globalThis as unknown as {
 
 // Make database optional for minimal blog setup
 export const db = process.env.DATABASE_URL
-  ? (globalForDb.db ??= drizzle(process.env.DATABASE_URL, { casing: 'snake_case' }))
+  ? (globalForDb.db ??= drizzle(process.env.DATABASE_URL, {
+      casing: 'snake_case',
+    }))
   : null

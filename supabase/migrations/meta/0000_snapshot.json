@@ -392,10 +392,7 @@
       "compositePrimaryKeys": {
         "stats_type_slug_pk": {
           "name": "stats_type_slug_pk",
-          "columns": [
-            "type",
-            "slug"
-          ]
+          "columns": ["type", "slug"]
         }
       },
       "uniqueConstraints": {},
@@ -408,10 +405,7 @@
     "public.type": {
       "name": "type",
       "schema": "public",
-      "values": [
-        "blog",
-        "snippet"
-      ]
+      "values": ["blog", "snippet"]
     }
   },
   "schemas": {},
