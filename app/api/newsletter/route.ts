@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 import { type NextRequest, NextResponse } from 'next/server'
 
 async function convertkitSubscribe(email: string) {

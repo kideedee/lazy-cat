@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 import type { NextRequest } from 'next/server'
 import { getBlogStats, updateBlogStats } from '~/db/queries'
 import type { SelectStats, StatsType } from '~/db/schema'

@@ -1,5 +1,3 @@
-export const runtime = 'edge'
-
 import { NextResponse } from 'next/server'
 import { getRecentlyPlayed } from '~/app/api/spotify/spotify'
 import { SITE_METADATA } from '~/data/site-metadata'
