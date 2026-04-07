@@ -357,6 +357,48 @@ What would you like to do?
 
 When implementing directly from conversation plan without an openspec change:
 
+0. **Create feature branch (if coming from /spx-plan)**
+
+   If conversation context shows this is a transition from `/spx-plan` (user discussed requirements, made decisions, then invoked `/spx-apply`), create a feature branch BEFORE any implementation:
+
+   1. **Check for uncommitted changes:**
+      ```bash
+      git status --porcelain
+      ```
+      If dirty working tree → stash first: `git stash push -m "WIP before spx-apply"`
+
+   2. **Derive branch name** from plan context (feature description, type of change)
+
+   3. **Suggest branch name** to user for confirmation:
+      ```
+      📌 Tạo branch mới từ master:
+      Đề xuất: <type>/<short-description>/sonvq
+
+      Bạn muốn:
+      A. ★ Dùng tên này
+      B. Sửa tên: ___
+      C. Không tạo branch (tiếp tục trên branch hiện tại)
+      ```
+
+   4. **Create branch** if confirmed (A or B):
+      ```bash
+      git fetch origin master
+      git checkout -b <branch-name> origin/master
+      ```
+
+   5. **Restore stash** if created: `git stash pop`
+
+   **Branch naming convention:**
+   - Pattern: `<type>/<short-description>/sonvq`
+   - Types: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`
+   - Description: kebab-case, max 50 chars
+   - Examples: `feat/add-dark-mode/sonvq`, `fix/profile-card/sonvq`
+
+   **Skip branch creation** if:
+   - Already on a feature branch (not master/main)
+   - User explicitly chose option C
+   - This is a continuation of existing implementation (not fresh from /spx-plan)
+
 1. **Extract tasks from conversation context**
 
    Review the plan discussed in `/spx-plan`. Identify concrete implementation tasks from the decisions, requirements, and approach discussed. Use the agent's built-in task tracking tool to create and manage the task list — do NOT create task files.
@@ -475,6 +517,7 @@ When running multiple verifiers, launch them in parallel (foreground) with strea
 This pattern applies everywhere verifiers run: milestone gates, auto-verify, and re-verify loops. The benefit is significant — instead of idling while the slowest verifier finishes, you're already fixing issues from faster ones.
 
 **Guardrails**
+- **Feature branch first (Mode B)** — When transitioning from `/spx-plan` to `/spx-apply`, MUST create a feature branch BEFORE writing any code. Never implement directly on master/main. Ask user to confirm branch name first.
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
 - If task is ambiguous, pause and ask before implementing
