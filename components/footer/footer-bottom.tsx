@@ -2,10 +2,7 @@
 
 import { clsx } from 'clsx'
 import { usePathname } from 'next/navigation'
-import { Link } from '~/components/ui/link'
 import { SpotifyNowPlaying } from '~/components/ui/now-playing'
-import { SITE_METADATA } from '~/data/site-metadata'
-import MadeInVietNam from '~/icons/miv.svg'
 import { LastCommit } from './last-commit'
 
 export function FooterBottom() {
@@ -29,11 +26,7 @@ export function FooterBottom() {
           showCover
         />
       )}
-      <Link href={SITE_METADATA.siteRepo}>
-        <span data-umami-event="made-in-vietnam">
-          <MadeInVietNam />
-        </span>
-      </Link>
+      <span className="text-gray-500 dark:text-gray-400">07/2026</span>
     </div>
   )
 }
