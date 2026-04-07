@@ -88,3 +88,8 @@ NEXT_PUBLIC_UMAMI_*=   # Analytics
 
 - `~/` → Root directory (`~/components/ui/button`)
 - `contentlayer/generated` → Contentlayer types
+
+## Feature Documentation
+
+- [Mermaid Architecture](docs/architecture/mermaid.md) — Client-side diagram rendering
+- [Mermaid Toggle Guide](docs/guides/mermaid-toggle.md) — Enable/disable mermaid diagrams

@@ -50,10 +50,12 @@ export function TypedBios() {
           I love watching and playing soccer. <Twemoji emoji="soccer-ball" />
         </li>
         <li>
-          I'm a bookworm - always reading something new. <Twemoji emoji="books" />
+          I'm a bookworm - always reading something new.{' '}
+          <Twemoji emoji="books" />
         </li>
         <li>
-          I'm into custom keyboards - the thock is real. <Twemoji emoji="keyboard" />
+          I'm into custom keyboards - the thock is real.{' '}
+          <Twemoji emoji="keyboard" />
         </li>
         <li>Code by day, blog by night.</li>
       </ul>

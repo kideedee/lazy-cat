@@ -4,7 +4,8 @@ export const HEADER_NAV_LINKS = [
   { href: '/about', title: 'About', emoji: 'billed-cap' },
 ]
 
-export const MORE_NAV_LINKS: { href: string; title: string; emoji: string }[] = []
+export const MORE_NAV_LINKS: { href: string; title: string; emoji: string }[] =
+  []
 
 export const FOOTER_NAV_LINKS = [
   { href: '/blog', title: 'Blog' },
@@ -13,6 +14,4 @@ export const FOOTER_NAV_LINKS = [
   { href: '/feed.xml', title: 'RSS Feed' },
 ]
 
-export const FOOTER_PERSONAL_STUFF = [
-  { href: '/about', title: 'About' },
-]
+export const FOOTER_PERSONAL_STUFF = [{ href: '/about', title: 'About' }]

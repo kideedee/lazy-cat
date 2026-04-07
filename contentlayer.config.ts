@@ -8,7 +8,8 @@ import type { Element } from 'hast'
 import readingTime from 'reading-time'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeCitation from 'rehype-citation'
-import rehypeMermaid from 'rehype-mermaid'
+// Disabled: rehype-mermaid requires Playwright which doesn't work in Cloudflare build
+// import rehypeMermaid from 'rehype-mermaid'
 import rehypePresetMinify from 'rehype-preset-minify'
 import rehypeSlug from 'rehype-slug'
 import remarkGfm from 'remark-gfm'
@@ -30,7 +31,16 @@ let icon: Element = {
   type: 'element',
   tagName: 'span',
   properties: {
-    className: ['heading-anchor', 'inline-flex', 'items-center', 'opacity-30', 'hover:opacity-100', 'transition-opacity', 'text-gray-800', 'dark:text-gray-50']
+    className: [
+      'heading-anchor',
+      'inline-flex',
+      'items-center',
+      'opacity-30',
+      'hover:opacity-100',
+      'transition-opacity',
+      'text-gray-800',
+      'dark:text-gray-50',
+    ],
   },
   children: [
     {
@@ -46,16 +56,36 @@ let icon: Element = {
         strokeWidth: '2',
         strokeLinecap: 'round',
         strokeLinejoin: 'round',
-        className: ['inline-block']
+        className: ['inline-block'],
       },
       children: [
-        { type: 'element', tagName: 'line', properties: { x1: '4', x2: '20', y1: '9', y2: '9' }, children: [] },
-        { type: 'element', tagName: 'line', properties: { x1: '4', x2: '20', y1: '15', y2: '15' }, children: [] },
-        { type: 'element', tagName: 'line', properties: { x1: '10', x2: '8', y1: '3', y2: '21' }, children: [] },
-        { type: 'element', tagName: 'line', properties: { x1: '16', x2: '14', y1: '3', y2: '21' }, children: [] },
-      ]
-    }
-  ]
+        {
+          type: 'element',
+          tagName: 'line',
+          properties: { x1: '4', x2: '20', y1: '9', y2: '9' },
+          children: [],
+        },
+        {
+          type: 'element',
+          tagName: 'line',
+          properties: { x1: '4', x2: '20', y1: '15', y2: '15' },
+          children: [],
+        },
+        {
+          type: 'element',
+          tagName: 'line',
+          properties: { x1: '10', x2: '8', y1: '3', y2: '21' },
+          children: [],
+        },
+        {
+          type: 'element',
+          tagName: 'line',
+          properties: { x1: '16', x2: '14', y1: '3', y2: '21' },
+          children: [],
+        },
+      ],
+    },
+  ],
 }
 
 let computedFields: ComputedFields = {
@@ -229,7 +259,9 @@ export default makeSource({
         },
       ],
       [rehypeCitation, { path: path.join(root, 'data') }],
-      [rehypeMermaid, { strategy: 'inline-svg' }],
+      // Disabled: rehype-mermaid requires Playwright, using client-side rendering instead
+      // See docs/architecture/mermaid.md for details
+      // [rehypeMermaid, { strategy: 'inline-svg' }],
       // Temporarily disabled due to SSR issue with shiki
       // [
       //   rehypePrettyCode,

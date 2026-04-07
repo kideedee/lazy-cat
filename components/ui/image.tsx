@@ -9,10 +9,9 @@ import { useState } from 'react'
 import type { UncontrolledProps } from 'react-medium-image-zoom'
 
 // Dynamic import to avoid SSR issues with react-medium-image-zoom
-const ReactMediumImageZoom = dynamic(
-  () => import('react-medium-image-zoom'),
-  { ssr: false }
-)
+const ReactMediumImageZoom = dynamic(() => import('react-medium-image-zoom'), {
+  ssr: false,
+})
 
 let loadedImages: string[] = []
 

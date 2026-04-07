@@ -1,4 +1,9 @@
 {
+  "kafka": 1,
+  "spring": 1,
+  "quarkus": 1,
+  "messaging": 1,
+  "event-driven": 1,
   "hello-world": 1,
   "blog": 1,
   "mermaid": 1,

@@ -158,10 +158,16 @@
     font-family: var(--font-jetbrains-mono), monospace;
     font-weight: 500;
   }
+  /* Fix ASCII box-drawing characters alignment - system fonts have complete Unicode support */
+  pre {
+    font-family: "Cascadia Code", Consolas, Menlo, "DejaVu Sans Mono",
+      var(--font-jetbrains-mono), monospace;
+    line-height: 1.4;
+  }
   .grit-bg-light {
-    background-image: url('/static/images/black-grit.png');
+    background-image: url("/static/images/black-grit.png");
   }
   .grit-bg-dark {
-    background-image: url('/static/images/white-grit.png');
+    background-image: url("/static/images/white-grit.png");
   }
 }

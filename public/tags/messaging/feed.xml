@@ -1,0 +1,25 @@
+
+		<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+			<channel>
+				<title>Lazy Cat – dev blog</title>
+				<link>https://lazy-cat.pages.dev/blog</link>
+				<description>Code by day, blog by night. Join me on my backend journey as we learn and grow together.</description>
+				<language>en-us</language>
+				<managingEditor> (Son Vu Quang)</managingEditor>
+				<webMaster> (Son Vu Quang)</webMaster>
+				<lastBuildDate>Tue, 07 Apr 2026 00:00:00 GMT</lastBuildDate>
+				<atom:link href="https://lazy-cat.pages.dev/tags/messaging/feed.xml" rel="self" type="application/rss+xml"/>
+				
+		<item>
+			<guid>https://lazy-cat.pages.dev/blog/apache-kafka-deep-dive</guid>
+			<title>Apache Kafka Deep Dive: Từ Kiến Trúc Đến Production</title>
+			<link>https://lazy-cat.pages.dev/blog/apache-kafka-deep-dive</link>
+			<description>Hướng dẫn toàn diện về Apache Kafka - từ kiến trúc KRaft, producer/consumer workflow, đến cấu hình production-ready cho Spring và Quarkus với 5 use cases thực tế.</description>
+			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>kafka</category><category>spring</category><category>quarkus</category><category>messaging</category><category>event-driven</category>
+		</item>
+	
+			</channel>
+		</rss>
+	

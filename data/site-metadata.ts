@@ -60,4 +60,7 @@ export const SITE_METADATA = {
     paypal: '',
     kofi: '',
   },
+  features: {
+    mermaid: true,
+  },
 }
