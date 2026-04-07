@@ -50,7 +50,7 @@ Hey there! I'm **Son Vu Quang** - a Backend Developer based in Ha Noi, Viet Nam.
 
 ## Credits
 
-This blog is built on top of [leohuynh.dev](https://github.com/hta218/leohuynh.dev) - a beautiful Next.js blog template.
+This blog is built on top of [**leohuynh.dev**](https://github.com/hta218/leohuynh.dev/tree/main) by [Leo Huynh](https://github.com/hta218) - a beautiful Next.js blog template.
 
 ### Assets
 

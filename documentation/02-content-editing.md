@@ -167,7 +167,7 @@ Trang About được lấy từ file `data/authors/default.mdx`.
 ```mdx
 ---
 name: Son Vu Quang
-avatar: /static/images/logo.jpg
+avatar: /static/images/lazy-cat.png
 occupation: Software Engineer
 company: Company Name
 email: email@example.com
@@ -365,7 +365,7 @@ export const SITE_METADATA = {
 
 ```
 public/static/images/
-├── logo.jpg           # Logo website
+├── lazy-cat.png       # Logo/Avatar website
 ├── twitter-card.jpeg  # Social sharing image
 └── [your-images]/     # Hình ảnh của bạn
 ```
