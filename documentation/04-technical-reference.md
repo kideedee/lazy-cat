@@ -284,10 +284,6 @@ Lấy bài hát đang phát trên Spotify.
 }
 ```
 
-### GET `/api/github/activities`
-
-Lấy hoạt động GitHub gần đây.
-
 ---
 
 ## 7. Contentlayer Configuration
@@ -411,7 +407,7 @@ export const MyComponent: React.FC<Props> = ({ title }) => {
 |------|------------|-------|
 | Components | PascalCase | `BlogPost.tsx` |
 | Utilities | camelCase | `formatDate.ts` |
-| Hooks | camelCase (use prefix) | `useActivities.ts` |
+| Hooks | camelCase (use prefix) | `useIntersectionObserver.ts` |
 | MDX | kebab-case | `my-blog-post.mdx` |
 
 ---

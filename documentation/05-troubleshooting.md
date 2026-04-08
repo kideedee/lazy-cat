@@ -191,6 +191,62 @@ Use the <Component> tag
 Use the `<Component>` tag
 ```
 
+### YAML Parse Error trên Windows (CRLF Line Endings)
+
+**Lỗi:**
+```
+YAMLParseError: Unexpected scalar at node end at line 7, column 21:
+authors: ['default']
+                    ^
+```
+
+**Nguyên nhân:** Git trên Windows tự động convert LF → CRLF khi checkout (do `core.autocrlf=true`). YAML parser trong contentlayer2 không xử lý được ký tự `\r` ở cuối dòng.
+
+**Triệu chứng:**
+- Chỉ xảy ra trên Windows, macOS chạy bình thường
+- `file data/blog/xxx.mdx` hiển thị `CRLF line terminators`
+- Contentlayer chỉ generate được 1 document thay vì nhiều
+
+**Giải pháp (một lần, áp dụng cho cả team):**
+
+1. Tạo file `.gitattributes` ở root:
+```
+# Force LF for text files
+*.mdx text eol=lf
+*.md text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+```
+
+2. Set git config cho repo:
+```bash
+git config core.autocrlf false
+```
+
+3. Re-normalize files:
+```bash
+git add --renormalize .
+git commit -m "chore: normalize line endings to LF"
+git rm --cached -r .
+git reset --hard HEAD
+```
+
+4. Clear cache và test:
+```bash
+rm -rf .contentlayer .next
+pnpm dev
+```
+
+**Verify fix:**
+```bash
+file data/blog/hello-world.mdx
+# Should show: "ASCII text" (NOT "CRLF line terminators")
+```
+
+> **Note:** Fix này đã được áp dụng cho project. Nếu bạn clone mới, `.gitattributes` sẽ tự động đảm bảo LF trên mọi OS.
+
 ### Bài viết không hiển thị
 
 **Kiểm tra:**
@@ -384,7 +440,7 @@ Nếu vẫn không giải quyết được:
 │                    QUICK FIX COMMANDS                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  pnpm biome:fix        Fix code style & lint               │
+│  pnpm biome:fix        Fix code style & lint                │
 │  pnpm typecheck        Check TypeScript errors              │
 │                                                             │
 │  rm -rf .next          Clear Next.js cache                  │
@@ -393,7 +449,19 @@ Nếu vẫn không giải quyết được:
 │  rm -rf node_modules   Full reinstall                       │
 │  pnpm install          (run after rm node_modules)          │
 │                                                             │
-│  kill -9 $(lsof -t -i:3434)   Kill process on port 3434    │
+│  ─────────────────── Kill Port Process ───────────────────  │
+│                                                             │
+│  macOS/Linux:                                               │
+│  kill -9 $(lsof -t -i:3434)                                 │
+│                                                             │
+│  Windows (PowerShell):                                      │
+│  netstat -ano | findstr 3434                                │
+│  taskkill /F /PID <PID>                                     │
+│                                                             │
+│  ───────────────── Fix CRLF (Windows) ────────────────────  │
+│                                                             │
+│  git config core.autocrlf false                             │
+│  git rm --cached -r . && git reset --hard                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```

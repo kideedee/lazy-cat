@@ -3,7 +3,6 @@ import { ProfileCard } from '~/components/cards/profile'
 import { Container } from '~/components/ui/container'
 import { Twemoji } from '~/components/ui/twemoji'
 import type { CoreContent } from '~/types/data'
-import { ActivitiesFeed } from './activities/feed'
 import { Greeting } from './greeting'
 import { HeroBanner } from './hero-banner'
 import { Intro } from './intro'
@@ -58,7 +57,6 @@ export function Home({
         </div>
       </div>
       <LatestPosts posts={posts} snippets={snippets} />
-      <ActivitiesFeed />
       {/* {SITE_METADATA.newsletter?.provider && (
         <div className="flex items-center justify-center py-4 lg:py-10">
           <NewsletterForm />

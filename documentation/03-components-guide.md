@@ -267,10 +267,6 @@ import { LatestPosts } from '~/components/home-page/latest-posts'
 
 Social links và contact info.
 
-### Activities (`activities/`)
-
-Hiển thị hoạt động gần đây (GitHub, Spotify, etc.).
-
 ---
 
 ## 4. Header Components (`components/header/`)

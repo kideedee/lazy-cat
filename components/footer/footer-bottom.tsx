@@ -1,14 +1,9 @@
 'use client'
 
 import { clsx } from 'clsx'
-import { usePathname } from 'next/navigation'
 import { SpotifyNowPlaying } from '~/components/ui/now-playing'
-import { LastCommit } from './last-commit'
 
 export function FooterBottom() {
-  let pathname = usePathname()
-  let isHomePage = pathname === '/'
-
   return (
     <div
       className={clsx([
@@ -17,15 +12,11 @@ export function FooterBottom() {
         'border-t border-gray-200 dark:border-gray-700',
       ])}
     >
-      {isHomePage ? (
-        <LastCommit />
-      ) : (
-        <SpotifyNowPlaying
-          className="w-full justify-center truncate [--artist-color:var(--color-gray-500)] md:max-w-[50%] md:justify-start"
-          songEffect="underline"
-          showCover
-        />
-      )}
+      <SpotifyNowPlaying
+        className="w-full justify-center truncate [--artist-color:var(--color-gray-500)] md:max-w-[50%] md:justify-start"
+        songEffect="underline"
+        showCover
+      />
       <span className="text-gray-500 dark:text-gray-400">07/2026</span>
     </div>
   )
