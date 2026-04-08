@@ -248,43 +248,7 @@ Implement tasks — from an OpenSpec change or directly from conversation plan.
     - Disagree with the original plan if implementation reveals it was flawed
     - Suggest updating artifacts (design.md, tasks.md) to reflect the better approach
 
-11. **Git Commit & Push**
-
-    After verification passes (0 CRITICALs), create a git commit:
-
-    1. **Stage changes:**
-       ```bash
-       git add -A
-       ```
-
-    2. **Create commit** with Conventional Commits format:
-       ```bash
-       git commit -m "$(cat <<'EOF'
-       <type>: <short description>
-
-       <body - list of changes made>
-
-       Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
-       EOF
-       )"
-       ```
-
-       - Type derived from branch name or change type (feat, fix, chore, etc.)
-       - Description from change/plan summary
-       - Body lists key changes made
-
-    3. **Show commit and suggest next steps:**
-       ```
-       ✓ Committed: <commit hash> "<commit message first line>"
-
-       **Next steps:**
-       1. 🚀 Push to remote: `git push -u origin <branch-name>`
-       2. 📝 Create PR: `gh pr create --title "<title>" --body "<body>"`
-       3. 📦 Archive change: `/spx-archive <name>`
-       4. 🔍 Review changes: `git show` or `git diff HEAD~1`
-       ```
-
-12. **Final Output**
+11. **Final Output**
 
     **If all clear:**
     ```
@@ -293,12 +257,10 @@ Implement tasks — from an OpenSpec change or directly from conversation plan.
     **Change:** <change-name>
     **Progress:** 7/7 tasks complete ✓
     **Verification:** All checks passed ✓
-    **Commit:** <hash> "<message>"
 
     **Next steps:**
-    1. 🚀 `git push -u origin <branch-name>`
-    2. 📝 `gh pr create --title "..." --body "..."`
-    3. 📦 `/spx-archive <name>`
+    1. 📦 `/spx-archive <name>`
+    2. 🔍 Review changes with `git diff`
     ```
 
     **If manual issues remain:**
@@ -356,48 +318,6 @@ What would you like to do?
 **Direct Plan Mode (Mode B)**
 
 When implementing directly from conversation plan without an openspec change:
-
-0. **Create feature branch (if coming from /spx-plan)**
-
-   If conversation context shows this is a transition from `/spx-plan` (user discussed requirements, made decisions, then invoked `/spx-apply`), create a feature branch BEFORE any implementation:
-
-   1. **Check for uncommitted changes:**
-      ```bash
-      git status --porcelain
-      ```
-      If dirty working tree → stash first: `git stash push -m "WIP before spx-apply"`
-
-   2. **Derive branch name** from plan context (feature description, type of change)
-
-   3. **Suggest branch name** to user for confirmation:
-      ```
-      📌 Tạo branch mới từ master:
-      Đề xuất: <type>/<short-description>/sonvq
-
-      Bạn muốn:
-      A. ★ Dùng tên này
-      B. Sửa tên: ___
-      C. Không tạo branch (tiếp tục trên branch hiện tại)
-      ```
-
-   4. **Create branch** if confirmed (A or B):
-      ```bash
-      git fetch origin master
-      git checkout -b <branch-name> origin/master
-      ```
-
-   5. **Restore stash** if created: `git stash pop`
-
-   **Branch naming convention:**
-   - Pattern: `<type>/<short-description>/sonvq`
-   - Types: `feat/`, `fix/`, `chore/`, `docs/`, `refactor/`
-   - Description: kebab-case, max 50 chars
-   - Examples: `feat/add-dark-mode/sonvq`, `fix/profile-card/sonvq`
-
-   **Skip branch creation** if:
-   - Already on a feature branch (not master/main)
-   - User explicitly chose option C
-   - This is a continuation of existing implementation (not fresh from /spx-plan)
 
 1. **Extract tasks from conversation context**
 
@@ -458,22 +378,16 @@ When implementing directly from conversation plan without an openspec change:
 
    Same auto-fix loop as Mode A (step 9), but without verify-fixes.md (no change directory). Fix all issues on first pass, re-verify until zero crits or max 2 rounds.
 
-6. **Git commit and output**
-
-   Same git commit flow as Mode A (step 11). Create commit after verification passes.
-
    ```
    ## ✅ Implementation Complete & Verified
 
    **Plan:** [summary]
    **Progress:** N/N tasks complete ✓
    **Verification:** All checks passed ✓
-   **Commit:** <hash> "<message>"
 
    **Next steps:**
-   1. 🚀 `git push -u origin <branch-name>`
-   2. 📝 `gh pr create --title "..." --body "..."`
-   3. 📦 To formalize as openspec change → `/spx-ff`
+   1. 📦 To formalize as openspec change → `/spx-ff`
+   2. 🔍 Review changes with `git diff`
    ```
 
 ---
@@ -517,7 +431,6 @@ When running multiple verifiers, launch them in parallel (foreground) with strea
 This pattern applies everywhere verifiers run: milestone gates, auto-verify, and re-verify loops. The benefit is significant — instead of idling while the slowest verifier finishes, you're already fixing issues from faster ones.
 
 **Guardrails**
-- **Feature branch first (Mode B)** — When transitioning from `/spx-plan` to `/spx-apply`, MUST create a feature branch BEFORE writing any code. Never implement directly on master/main. Ask user to confirm branch name first.
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
 - If task is ambiguous, pause and ask before implementing

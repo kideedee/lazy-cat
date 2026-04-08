@@ -1,5 +1,5 @@
 ---
-title: 'Apache Kafka: Tất Cả Những Gì Bạn Cần Biết'
+title: 'Kafka Series (1): Tất Cả Những Gì Bạn Cần Biết'
 date: '2026-04-07'
 tags: ['kafka', 'messaging', 'event-driven']
 summary: 'Tổng quan nhanh về Apache Kafka - event streaming platform phổ biến nhất. Hiểu core concepts, khi nào nên dùng, và bắt đầu trong 5 phút.'
@@ -145,9 +145,49 @@ while (true) {
 }
 ```
 
-## Deep Dives
+## Thứ Tự Đọc Khuyến Nghị
 
-Muốn tìm hiểu sâu hơn? Chọn topic bạn quan tâm:
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         KAFKA SERIES                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  START HERE                                                              │
+│      │                                                                   │
+│      ▼                                                                   │
+│  ┌──────────────────┐                                                   │
+│  │ 1. Tổng Quan     │ ← Bạn đang ở đây                                  │
+│  │    (bài này)     │                                                   │
+│  └────────┬─────────┘                                                   │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌──────────────────┐     ┌──────────────────┐                          │
+│  │ 2. Kiến Trúc     │────▶│ 3. So Sánh       │                          │
+│  │    (bắt buộc)    │     │    (tùy chọn)    │                          │
+│  └────────┬─────────┘     └──────────────────┘                          │
+│           │                                                              │
+│           ▼                                                              │
+│  ┌──────────────────┐     ┌──────────────────┐                          │
+│  │ 4. Spring Kafka  │ OR  │ 4. Quarkus Kafka │                          │
+│  │    (chọn 1)      │     │    (chọn 1)      │                          │
+│  └────────┬─────────┘     └────────┬─────────┘                          │
+│           │                        │                                     │
+│           └───────────┬────────────┘                                     │
+│                       ▼                                                  │
+│              ┌──────────────────┐                                        │
+│              │ 5. Use Cases     │                                        │
+│              │    & Configs     │                                        │
+│              └──────────────────┘                                        │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**Đường đi nhanh nhất:**
+1. **Tổng Quan** (5 phút) → 2. **Kiến Trúc** (15 phút) → 4. **Spring/Quarkus** (10 phút) → 5. **Use Cases** (5 phút)
+
+**Nếu cần so sánh công nghệ:** Đọc thêm **So Sánh Chi Tiết** sau bài Kiến Trúc
+
+## Deep Dives
 
 ### [Kiến Trúc Kafka](/blog/kafka/kafka-architecture)
 Broker, Topic, Partition, Replication, KRaft mode (Kafka 4.0). Hiểu cách Kafka hoạt động bên trong.
