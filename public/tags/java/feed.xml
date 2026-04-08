@@ -12,7 +12,7 @@
 				
 		<item>
 			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-spring</guid>
-			<title>Spring Kafka: Production Configuration Guide</title>
+			<title>Kafka Series (4): Spring Kafka Production Guide</title>
 			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-spring</link>
 			<description>Production-ready Spring Kafka configuration. KafkaTemplate, @KafkaListener patterns, error handling với DLT, transactions, và security setup.</description>
 			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>

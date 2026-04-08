@@ -12,7 +12,7 @@
 				
 		<item>
 			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-quarkus</guid>
-			<title>Quarkus Kafka: Reactive Messaging Guide</title>
+			<title>Kafka Series (5): Quarkus Reactive Messaging Guide</title>
 			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-quarkus</link>
 			<description>SmallRye Reactive Messaging cho Quarkus developers. Incoming/Outgoing channels, Emitter patterns, Dev Services, và native compilation.</description>
 			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>

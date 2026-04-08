@@ -22,7 +22,7 @@
 	
 		<item>
 			<guid>https://lazy-cat.pages.dev/blog/kafka</guid>
-			<title>Apache Kafka: Tất Cả Những Gì Bạn Cần Biết</title>
+			<title>Kafka Series (1): Tất Cả Những Gì Bạn Cần Biết</title>
 			<link>https://lazy-cat.pages.dev/blog/kafka</link>
 			<description>Tổng quan nhanh về Apache Kafka - event streaming platform phổ biến nhất. Hiểu core concepts, khi nào nên dùng, và bắt đầu trong 5 phút.</description>
 			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>

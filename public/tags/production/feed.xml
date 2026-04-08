@@ -12,7 +12,7 @@
 				
 		<item>
 			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-use-cases</guid>
-			<title>Kafka Use Cases: 5 Production Configurations</title>
+			<title>Kafka Series (6): 5 Production Use Cases &amp; Configs</title>
 			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-use-cases</link>
 			<description>5 production use cases với configs chi tiết - High Throughput, Low Latency, Exactly-Once, Event Sourcing, CDC. Kèm consumer stability guide và config cheat sheet.</description>
 			<pubDate>Tue, 07 Apr 2026 00:00:00 GMT</pubDate>

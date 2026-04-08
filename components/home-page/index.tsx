@@ -5,6 +5,7 @@ import { Twemoji } from '~/components/ui/twemoji'
 import type { CoreContent } from '~/types/data'
 import { ActivitiesFeed } from './activities/feed'
 import { Greeting } from './greeting'
+import { HeroBanner } from './hero-banner'
 import { Intro } from './intro'
 import { LatestPosts } from './latest-posts'
 import { BlogLinks } from './links'
@@ -18,7 +19,9 @@ export function Home({
   snippets: CoreContent<Snippet>[]
 }) {
   return (
-    <Container as="div" className="space-y-6 pt-4 md:space-y-24 lg:pt-12">
+    <>
+      <HeroBanner />
+      <Container as="div" className="space-y-6 pt-4 md:space-y-24 lg:pt-12">
       <div className="pt-6 xl:grid xl:grid-cols-3">
         <div className="space-y-4 md:space-y-6 md:pr-8 xl:col-span-2">
           <Greeting />
@@ -62,5 +65,6 @@ export function Home({
         </div>
       )} */}
     </Container>
+    </>
   )
 }
