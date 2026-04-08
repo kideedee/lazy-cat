@@ -2,12 +2,12 @@
   "name": "sonvq.dev",
   "version": "2.0.0",
   "scripts": {
-    "start": "PORT=3435 next dev",
-    "dev": "PORT=3434 cross-env INIT_CWD=$PWD next dev",
+    "start": "cross-env PORT=3435 next dev",
+    "dev": "cross-env PORT=3434 INIT_CWD=$PWD next dev",
     "build": "cross-env INIT_CWD=$PWD next build && npm run postbuild",
     "postbuild": "cross-env NODE_OPTIONS='--experimental-json-modules' tsx ./scripts/post-build.ts",
     "serve": "next start",
-    "clean": "rm -rf .next .contentlayer .cache node_modules pnpm-lock.yaml",
+    "clean": "shx rm -rf .next .contentlayer .cache node_modules pnpm-lock.yaml",
     "analyze": "cross-env ANALYZE=true next build",
     "lint": "next lint --fix --dir pages --dir app --dir components --dir lib --dir layouts --dir scripts",
     "biome:lint": "biome lint --write --unsafe",
@@ -92,6 +92,7 @@
     "drizzle-kit": "^0.31.1",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.0",
+    "shx": "^0.4.0",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   },

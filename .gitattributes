@@ -1,0 +1,23 @@
+# Force LF line endings for text files that need it
+# This fixes YAML parse errors in contentlayer on Windows
+
+# MDX and Markdown files (critical for contentlayer)
+*.mdx text eol=lf
+*.md text eol=lf
+
+# Other source files that benefit from consistent line endings
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Shell scripts must use LF
+*.sh text eol=lf
+
+# Git config files
+.gitignore text eol=lf
+.gitattributes text eol=lf
