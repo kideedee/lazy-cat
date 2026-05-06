@@ -1,0 +1,536 @@
+---
+title: 'Xóa sổ if/else tenant hell: Strategy + Registry Pattern trong multi-tenant microservice'
+date: '2026-05-06'
+tags: ['java', 'design-patterns', 'quarkus', 'architecture']
+summary: 'Thay thế if/else tenant bằng Strategy + Registry Pattern trong Quarkus. Thêm thị trường mới chỉ cần 1 file, không sửa code cũ.'
+images: ['/static/images/blog_default.png']
+authors: ['default']
+---
+
+## Bạn đã từng viết đoạn code này chưa?
+
+```java
+public Mono<Response> processOrder(UserInfo userInfo, Long orderId, ProcessOrderRequest request) {
+
+    Integer tenantId = userInfo.getTenantId();
+
+    if (tenantId == 1) { // Market A
+        return validateWithPaymentGatewayA(request)
+                .then(saveAndComplete(orderId, request, userInfo));
+    } else if (tenantId == 2) { // Market B
+        return validateWithPaymentGatewayB(request)
+                .then(saveAndComplete(orderId, request, userInfo));
+    } else if (tenantId == 3) { // Market C — thêm sau
+        return validateWithPaymentGatewayC(request)
+                .then(saveAndComplete(orderId, request, userInfo));
+    }
+
+    throw new IllegalArgumentException("Unsupported tenant: " + tenantId);
+}
+```
+
+Nếu có, bạn không đơn độc. Đây là pattern khá phổ biến khi bắt đầu một dự án — và cũng là thứ dễ trở thành vấn đề khi số
+lượng thị trường tăng lên.
+
+---
+
+## Bối cảnh: một API, nhiều thị trường, logic khác nhau
+
+### Strategy Pattern là gì?
+
+Strategy Pattern là một trong những pattern thuộc nhóm Behavioral (hành vi) trong GoF Design Patterns. Ý tưởng cốt lõi:
+tách phần logic có thể thay đổi ra khỏi phần không thay đổi, đóng gói chúng vào các class riêng biệt, và cho phép chọn
+lựa linh hoạt tại runtime.
+
+Cấu trúc cơ bản gồm ba thành phần:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                       Context                           │
+│                                                         │
+│   - Giữ reference đến Strategy                          │
+│   - Gọi strategy.execute() thay vì tự xử lý logic       │
+└──────────────────────────┬──────────────────────────────┘
+                           │ uses
+                           ▼
+          ┌────────────────────────────────┐
+          │        <<interface>>           │
+          │           Strategy             │
+          │                                │
+          │  + execute(context): Result    │
+          └────────────────────────────────┘
+                           ▲
+           ┌───────────────┼───────────────┐
+           │               │               │
+  ┌────────┴──────┐ ┌──────┴──────┐ ┌─────┴───────┐
+  │  ConcreteA    │ │  ConcreteB  │ │  ConcreteC  │
+  │               │ │             │ │             │
+  │ execute(...)  │ │ execute(...)│ │ execute(...)│
+  └───────────────┘ └─────────────┘ └─────────────┘
+```
+
+Context không biết concrete class nào đang được dùng — nó chỉ gọi qua interface. Việc chọn implementation nào là quyết
+định từ bên ngoài.
+
+### Strategy Pattern và bài toán multi-tenant
+
+Hãy tưởng tượng một microservice xử lý nghiệp vụ cho nhiều thị trường quốc tế. Phần lớn logic giống nhau: xem danh sách,
+xem chi tiết, xuất báo cáo. Nhưng ở một số nghiệp vụ cốt lõi — ví dụ xác thực tài khoản thanh toán khi hoàn tất giao
+dịch — mỗi thị trường tích hợp với một cổng thanh toán khác nhau:
+
+- **Thị trường A** → Payment Gateway A (phân biệt ví điện tử và tài khoản ngân hàng thường)
+- **Thị trường B** → Payment Gateway B (một API duy nhất cho cả hai loại)
+- **Thị trường C** → Payment Gateway C (logic riêng)
+
+Strategy Pattern giải quyết được phần *cấu trúc*: tách các implementation ra từng class riêng biệt. Nhưng trong GoF,
+Strategy Pattern giả định Context **đã biết trước** dùng implementation nào — thường do caller truyền vào tại compile
+time:
+
+```java
+// GoF style: caller quyết định strategy
+context.setStrategy(new MarketAOrderService());
+context.execute();
+```
+
+Trong bài toán multi-tenant, điều này không khả thi. Implementation cần được chọn **tại runtime dựa trên một key động**
+— `tenantId` từ request. Strategy Pattern không định nghĩa cơ chế này.
+
+CDI cung cấp một số cách tiếp cận, nhưng đều có giới hạn:
+
+**CDI Qualifier** — chỉ dùng được khi biết tenant tại compile time, không scale khi số thị trường tăng:
+
+```java
+@Inject
+@MarketA
+OrderService serviceA;
+@Inject
+@MarketB
+OrderService serviceB;
+// phải inject tất cả, dù request chỉ cần một
+```
+
+**CDI `Instance<T>` trực tiếp** — hoạt động được về mặt kỹ thuật, nhưng logic routing bị rải ra ở mọi nơi cần dùng, và
+mỗi request phải iterate qua toàn bộ list:
+
+```java
+@Inject
+@Any
+Instance<OrderService> services;
+
+OrderService resolve(Integer tenantId) {
+    return StreamSupport.stream(services.spliterator(), false)
+            .filter(s -> s.getTenantId() == tenantId)
+            .findFirst().orElseThrow();
+}
+```
+
+Registry Pattern bổ sung đúng phần còn thiếu: **encapsulate logic "key → implementation" vào một nơi duy nhất**, build
+map một lần khi startup (O(1) lookup thay vì iterate mỗi request), và fail-fast ngay khi khởi động nếu có tenant không
+có implementation tương ứng.
+
+Hai pattern giải quyết hai bài toán bổ sung cho nhau: **Strategy định nghĩa cấu trúc, Registry giải quyết routing động**.
+
+---
+
+## Ba vấn đề của if/else tenant
+
+**1. Vi phạm Open/Closed Principle**
+
+Mỗi lần thêm thị trường mới, bạn phải mở file đang chạy ổn định ra sửa. Một thay đổi nhỏ cho thị trường C có thể vô tình
+break logic của thị trường A. Và bạn chỉ biết khi production báo lỗi.
+
+**2. Unit test khó khoanh vùng**
+
+Để test logic của thị trường A, bạn phải mock cả Payment Gateway B và C dù chúng không liên quan. Test setup phình to,
+coverage dễ bị hiểu nhầm, confidence thấp.
+
+**3. Merge conflict và review khó**
+
+Khi team thị trường A và team thị trường B cùng sửa một file, conflict là chuyện thường ngày. Code review cũng khó hơn
+vì reviewer phải hiểu logic của tất cả thị trường để review một thay đổi nhỏ.
+
+---
+
+## Giải pháp: Strategy + Registry Pattern
+
+Hãy nghĩ như một quầy dịch vụ quốc tế. Cùng một loại yêu cầu, nhưng quy trình xử lý khác nhau theo từng thị trường. Thay
+vì nhân viên phải nhớ từng quy trình, họ tra cứu một **bảng đăng ký** và giao cho đúng bộ phận xử lý.
+
+Đó chính xác là những gì Strategy + Registry Pattern làm:
+
+```
+HTTP Request
+     │
+     ▼
+┌──────────────────────────────────────────────────────┐
+│                     OrderApi                         │
+│  @PostConstruct → registry.getDefault()              │
+└─────────────────────────┬────────────────────────────┘
+                          │
+                          ▼
+┌──────────────────────────────────────────────────────┐
+│               OrderServiceRegistry                   │
+│                                                      │
+│  Map<Integer, OrderService>                          │
+│  ┌──────┬────────────────────────────────────────┐   │
+│  │  1   │  MarketAOrderService                   │   │
+│  │  2   │  MarketBOrderService                   │   │
+│  └──────┴────────────────────────────────────────┘   │
+│                                                      │
+│  getByTenantId(id) → service                         │
+└─────────────────────────┬────────────────────────────┘
+                          │
+         ┌────────────────┴────────────────┐
+         ▼                                 ▼
+┌─────────────────┐               ┌─────────────────┐
+│  MarketAOrder   │               │  MarketBOrder   │
+│  Service        │               │  Service        │
+│  tenantId = 1   │               │  tenantId = 2   │
+│  → Gateway A    │               │  → Gateway B    │
+└────────┬────────┘               └────────┬────────┘
+         │                                 │
+         └────────────────┬────────────────┘
+                          ▼
+         ┌────────────────────────────────┐
+         │      AbstractOrderService      │
+         │  (shared: list, detail,        │
+         │   report, export, confirm...)  │
+         └────────────────────────────────┘
+```
+
+---
+
+## Triển khai từng bước
+
+### Bước 1: Interface với contract tự định danh
+
+```java
+public interface OrderService {
+
+    // Contract tự định danh — mỗi implementation khai báo tenant của mình
+    int getTenantId();
+
+    Mono<Response> getOrderList(UserInfo userInfo, GetOrderListRequest request);
+
+    Mono<Response> getOrderDetail(UserInfo userInfo, Long orderId);
+
+    Mono<Response> processOrder(UserInfo userInfo, Long orderId, ProcessOrderRequest request);
+    // ... các method khác
+}
+```
+
+`getTenantId()` là chìa khóa của toàn bộ pattern. Mỗi implementation tự khai báo mình thuộc tenant nào — registry dùng
+giá trị này để xây dựng bảng tra cứu tự động.
+
+### Bước 2: Abstract base class cho shared logic
+
+```java
+// Không có @ApplicationScoped — đây là abstract class, không phải CDI bean
+@Slf4j
+public abstract class AbstractOrderService implements OrderService {
+
+    @Inject
+    OrderRepository orderRepository;
+    @Inject
+    ResponseFactory responseFactory;
+
+    // Logic dùng chung cho tất cả thị trường — viết một lần
+    @Override
+    public Mono<Response> getOrderDetail(UserInfo userInfo, Long orderId) {
+        return orderRepository.findById(orderId, userInfo.getTenantId())
+                .flatMap(detail -> Mono.just(responseFactory.success(detail)));
+    }
+
+    // Method này mỗi thị trường implement khác nhau — bắt buộc override
+    @Override
+    public abstract Mono<Response> processOrder(
+            UserInfo userInfo, Long orderId, ProcessOrderRequest request);
+}
+```
+
+Abstract base class giải quyết code duplication: tất cả logic dùng chung chỉ viết một lần. Chỉ những gì thực sự khác
+nhau mới được khai báo `abstract`.
+
+### Bước 3: Concrete implementations — mỗi thị trường một class
+
+**Thị trường A — Payment Gateway A:**
+
+```java
+@ApplicationScoped  // CDI bean — registry tự phát hiện
+@Slf4j
+public class MarketAOrderService extends AbstractOrderService {
+
+    @Inject
+    PaymentGatewayACaller gatewayACaller;
+
+    @Override
+    public int getTenantId() {
+        return 1;
+    }
+
+    @Override
+    public Mono<Response> processOrder(UserInfo userInfo, Long orderId, ProcessOrderRequest request) {
+        return validateOrder(userInfo, orderId, request)
+                .flatMap(order -> validatePaymentAccount(request)
+                        .then(getUserInfo(userInfo)
+                                .flatMap(tuple -> repoHelper.withTransaction(conn -> {
+                                    return updateOrderMono(conn, orderId, request, userInfo)
+                                            .then(saveCompletionMono(conn, order, request, userInfo, tuple))
+                                            .then(updateStatusMono(conn, orderId, order, userInfo))
+                                            .thenReturn(responseFactory.success(orderId));
+                                }))))
+                .onErrorResume(AppException.class, e ->
+                        Mono.just(responseFactory.fail(ErrorCode.PAYMENT_ACCOUNT_INVALID)));
+    }
+
+    private Mono<Void> validatePaymentAccount(ProcessOrderRequest request) {
+        // Logic validate với Gateway A — phân biệt ví điện tử và tài khoản ngân hàng
+        return gatewayACaller.getToken(buildTokenRequest())
+                .flatMap(tokenResponse -> {
+                    if ("wallet".equalsIgnoreCase(request.getAccountType())) {
+                        return validateWallet(request, tokenResponse.getAccessToken());
+                    }
+                    return validateBankAccount(request, tokenResponse.getAccessToken());
+                });
+    }
+}
+```
+
+**Thị trường B — Payment Gateway B:**
+
+```java
+@ApplicationScoped
+@Slf4j
+public class MarketBOrderService extends AbstractOrderService {
+
+    @Inject
+    PaymentGatewayBCaller gatewayBCaller;
+
+    @Override
+    public int getTenantId() {
+        return 2;
+    }
+
+    @Override
+    public Mono<Response> processOrder(UserInfo userInfo, Long orderId, ProcessOrderRequest request) {
+        // Cùng flow, nhưng validate với Gateway B
+        return validateOrder(userInfo, orderId, request)
+                .flatMap(order -> validatePaymentAccount(request)
+                        .then(/* ... same transaction logic ... */));
+    }
+
+    private Mono<Void> validatePaymentAccount(ProcessOrderRequest request) {
+        // Gateway B dùng một API duy nhất cho cả ví và tài khoản ngân hàng
+        return gatewayBCaller.checkAccount(request.getAccountNo(), request.getAccountType())
+                .flatMap(response -> {
+                    if (response == null || !"SUCCESS".equals(response.getStatus())) {
+                        return Mono.error(AppException.badRequest(
+                                ErrorCode.PAYMENT_ACCOUNT_INVALID, "payment.account.invalid"));
+                    }
+                    return Mono.empty();
+                });
+    }
+}
+```
+
+Hai class, hai cổng thanh toán, zero if/else. Mỗi class chỉ biết về thị trường của mình.
+
+### Bước 4: Registry — trái tim của pattern
+
+```java
+@ApplicationScoped
+@Startup  // Khởi tạo ngay khi app start, không lazy
+public class OrderServiceRegistry {
+
+    private final Map<Integer, OrderService> serviceMap = new HashMap<>();
+
+    @ConfigProperty(name = "app.tenant.default", defaultValue = "1")
+    Integer defaultTenantId;
+
+    @Inject
+    @Any
+    Instance<OrderService> services;  // CDI inject TẤT CẢ implementations
+
+    @PostConstruct
+    void init() {
+        for (OrderService service : services) {
+            serviceMap.put(service.getTenantId(), service);
+            log.info("Registered OrderService tenantId={}: {}",
+                    service.getTenantId(), service.getClass().getSimpleName());
+        }
+    }
+
+    public OrderService getByTenantId(Integer tenantId) {
+        OrderService service = serviceMap.get(tenantId);
+        if (service == null) {
+            throw new IllegalArgumentException(
+                    "No OrderService registered for tenantId=" + tenantId);
+        }
+        return service;
+    }
+
+    public OrderService getDefault() {
+        return getByTenantId(defaultTenantId);
+    }
+}
+```
+
+Điểm đáng chú ý ở đây: `@Inject @Any Instance<OrderService>` yêu cầu Quarkus CDI inject **tất cả** các bean implement
+`OrderService`. Registry không cần biết có bao nhiêu implementation — CDI tự tìm và inject hết. Khi thêm thị trường mới,
+registry không cần sửa một dòng nào.
+
+### Bước 5: Inject Bean — sử dụng registry
+
+```java
+@Path("/orders")
+@ApplicationScoped
+public class OrderApi {
+
+    @Inject
+    OrderServiceRegistry orderServiceRegistry;
+
+    OrderService orderService;
+
+    @PostConstruct
+    void init() {
+        // Resolve service một lần khi startup
+        orderService = orderServiceRegistry.getDefault();
+    }
+
+    @PUT
+    @Path("/{id}/process")
+    public Uni<Response> processOrder(
+            @PathParam("id") Long orderId,
+            ProcessOrderRequest request,
+            @Context HttpHeaders headers) {
+        UserInfo userInfo = extractUserInfo(headers);
+        // Không có if/else ở đây — service đã được resolve đúng tenant
+        return orderService.processOrder(userInfo, orderId, request)
+                .as(UniReactorConverters.fromMono());
+    }
+}
+```
+
+---
+
+## Thêm thị trường mới: chỉ cần 1 file
+
+Đây là lúc pattern cho thấy giá trị. Giả sử cần thêm thị trường C (tenantId = 3, cổng thanh toán Gateway C):
+
+```java
+@ApplicationScoped
+public class MarketCOrderService extends AbstractOrderService {
+
+    @Inject
+    PaymentGatewayCCaller gatewayCCaller;
+
+    @Override
+    public int getTenantId() {
+        return 3;
+    }
+
+    @Override
+    public Mono<Response> processOrder(UserInfo userInfo, Long orderId, ProcessOrderRequest request) {
+        return validateOrder(userInfo, orderId, request)
+                .flatMap(order -> validateWithGatewayC(request)
+                        .then(/* ... */));
+    }
+
+    private Mono<Void> validateWithGatewayC(ProcessOrderRequest request) {
+        // Logic Gateway C — chỉ thị trường C mới biết
+    }
+}
+```
+
+**Không cần sửa bất kỳ file nào khác:**
+
+| File                   | Trạng thái                              |
+|------------------------|-----------------------------------------|
+| `OrderServiceRegistry` | ✅ Không đổi — CDI tự phát hiện bean mới |
+| `OrderApi`             | ✅ Không đổi                             |
+| `AbstractOrderService` | ✅ Không đổi                             |
+| `MarketAOrderService`  | ✅ Không đổi                             |
+| `MarketBOrderService`  | ✅ Không đổi                             |
+
+Chỉ cần tạo một file mới, deploy, và registry tự cập nhật. Đây là Open/Closed Principle trong thực tế.
+
+---
+
+## Deployment model hiện tại và hướng mở rộng
+
+Hiện tại, controller resolve service **một lần khi startup** qua `getDefault()`:
+
+```java
+@PostConstruct
+void init() {
+    orderService = orderServiceRegistry.getDefault();
+}
+```
+
+Điều này phù hợp với model deploy phổ biến: **mỗi instance phục vụ một thị trường**. Config `app.tenant.default=1` trên
+instance thị trường A, `=2` trên instance thị trường B — registry resolve đúng service ngay từ startup.
+
+Nhưng registry đã sẵn sàng cho tương lai. Nếu cần chạy **một instance phục vụ nhiều thị trường** (ví dụ: môi trường
+dev/staging dùng chung), chỉ cần thay đổi điểm resolve ở controller:
+
+```java
+// Tương lai: resolve per-request theo tenant của user
+@PUT
+@Path("/{id}/process")
+public Uni<Response> processOrder() {
+    UserInfo userInfo = extractUserInfo(headers);
+    // Registry đã có sẵn getByTenantId — không cần sửa gì thêm
+    return orderServiceRegistry
+            .getByTenantId(userInfo.getTenantId())
+            .processOrder(userInfo, orderId, request)
+            .as(UniReactorConverters.fromMono());
+}
+```
+
+Không cần refactor pattern, không cần sửa business logic — chỉ thay đổi điểm resolve.
+
+---
+
+## Khi nào KHÔNG cần pattern này
+
+Không phải mọi service đều cần registry. Nếu logic nghiệp vụ giống nhau ở tất cả thị trường và `tenantId` chỉ được dùng
+như một filter trong câu SQL, một interface với một implementation là đủ:
+
+```java
+// Simple case — không cần registry
+@Inject
+CustomerService customerService;  // Một implementation duy nhất cho tất cả thị trường
+```
+
+**Dùng Strategy + Registry khi:**
+
+- Logic nghiệp vụ thực sự khác nhau giữa các tenant (không chỉ là filter data)
+- Có ít nhất 2 tenant với logic khác nhau, và dự kiến sẽ có thêm
+- Muốn mỗi team/thị trường có thể phát triển và test độc lập
+
+**Không cần dùng khi:**
+
+- Chỉ có 1-2 tenant và logic gần như giống nhau
+- Sự khác biệt chỉ là config (URL, API key, threshold) — dùng `@ConfigProperty` là đủ
+- Performance-critical hot path — registry lookup thêm một lớp indirection (dù rất nhỏ)
+
+---
+
+## Kết luận
+
+Strategy + Registry Pattern giải quyết một vấn đề cụ thể: **làm thế nào để một API phục vụ nhiều thị trường với logic
+khác nhau mà không cần if/else**.
+
+Ba điều bạn nhận được:
+
+- **Extensibility**: Thêm thị trường mới = tạo 1 file mới, không sửa code cũ
+- **Isolation**: Mỗi thị trường là một class độc lập, test và deploy riêng biệt
+- **Clarity**: Đọc `MarketAOrderService` là đọc logic của thị trường A — không bị lẫn với B hay C
+
+Pattern này không phải silver bullet. Nhưng trong hệ thống multi-tenant với logic nghiệp vụ phân kỳ theo thị trường, đây
+là một cách tổ chức code có thể giải quyết được vấn đề một cách rõ ràng.
+
+---
+
+*Bài viết sử dụng Quarkus 3.x với CDI và Reactor Mono làm ví dụ minh họa. Pattern này có thể áp dụng tương tự với Spring
+Boot (`@Autowired List<OrderService>`) hoặc bất kỳ DI framework nào hỗ trợ inject collection of beans.*
