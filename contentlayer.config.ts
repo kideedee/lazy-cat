@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process'
 import { writeFileSync } from 'node:fs'
 import path from 'node:path'
 import type { ComputedFields } from 'contentlayer2/source-files'
@@ -122,13 +121,11 @@ function createTagCount(documents) {
       }
     }
   }
-  writeFileSync('./json/tag-data.json', JSON.stringify(tagCount))
-  // Run format on the generated file
-  if (!isProduction) {
-    execSync('pnpm biome format --write ./json/tag-data.json', {
-      stdio: 'ignore',
-    })
-  }
+  // Pre-formatted to match Biome, so builds don't dirty the tracked file
+  writeFileSync(
+    './json/tag-data.json',
+    `${JSON.stringify(tagCount, null, 2)}\n`,
+  )
   console.log('🏷️. Tag list generated.')
 }
 
