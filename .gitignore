@@ -5,19 +5,24 @@ node_modules/
 # Build outputs
 .next/
 .vercel/
+.wrangler/
+.open-next/
 out/
 dist/
 .contentlayer/
+next-env.d.ts
 
-# Generated files
+# Generated at build time (contentlayer onSuccess + scripts/post-build.ts)
+# json/tag-data.json stays tracked: it is statically imported, so typecheck needs it on a fresh clone
 public/search.json
+public/feed.xml
+public/tags/
 
 # Environment files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env*.local
+.dev.vars
+!.env.example
 
 # IDE and editors
 .idea/
@@ -31,17 +36,19 @@ public/search.json
 Thumbs.db
 
 # Logs
-npm-debug.log*
-pnpm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+*.log
 
 # Testing
 coverage/
+test-results/
+playwright-report/
+.playwright-mcp/
 
 # Cache
 .eslintcache
 *.tsbuildinfo
+.turbo/
+.cache/
 
 # Misc
 *.pem
@@ -50,9 +57,4 @@ coverage/
 CLAUDE.local.md
 .claude/settings.local.json
 .claude/settings.*.json
-
-# Additional patterns
-*.log
-.turbo/
-.cache/
 *.local.*
