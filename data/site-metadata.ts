@@ -1,7 +1,7 @@
 export const SITE_METADATA = {
-  title: `Lazy Cat – dev blog`,
+  title: 'Lazy Cat – dev blog',
   author: 'Son Vu Quang',
-  headerTitle: `Lazy Cat`,
+  headerTitle: 'Lazy Cat',
   description:
     'Code by day, blog by night. Join me on my backend journey as we learn and grow together.',
   language: 'en-us',

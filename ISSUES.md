@@ -4,7 +4,7 @@ Issues discovered during CLAUDE.md improvement research. Address when convenient
 
 ## High Priority
 
-### 1. DB Connection Pool Exhaustion
+### 1. ~~DB Connection Pool Exhaustion~~ ✅ Fixed (singleton in `db/index.ts`)
 
 **File**: `db/index.ts:7-9`
 

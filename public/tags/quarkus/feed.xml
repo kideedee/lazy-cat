@@ -21,6 +21,16 @@
 		</item>
 	
 		<item>
+			<guid>https://lazy-cat.pages.dev/blog/strategy-registry-pattern</guid>
+			<title>Xóa sổ if/else tenant hell: Strategy + Registry Pattern trong multi-tenant microservice</title>
+			<link>https://lazy-cat.pages.dev/blog/strategy-registry-pattern</link>
+			<description>Thay thế if/else tenant bằng Strategy + Registry Pattern trong Quarkus. Thêm thị trường mới chỉ cần 1 file, không sửa code cũ.</description>
+			<pubDate>Wed, 06 May 2026 00:00:00 GMT</pubDate>
+			<author> (Son Vu Quang)</author>
+			<category>java</category><category>design-patterns</category><category>quarkus</category><category>architecture</category>
+		</item>
+	
+		<item>
 			<guid>https://lazy-cat.pages.dev/blog/kafka/kafka-quarkus</guid>
 			<title>Kafka Series (5): Quarkus Reactive Messaging Guide</title>
 			<link>https://lazy-cat.pages.dev/blog/kafka/kafka-quarkus</link>
