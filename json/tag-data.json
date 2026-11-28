@@ -1,9 +1,9 @@
 {
-  "kafka": 7,
+  "kafka": 8,
   "spring": 2,
   "quarkus": 3,
-  "messaging": 2,
-  "event-driven": 2,
+  "messaging": 3,
+  "event-driven": 3,
   "hello-world": 1,
   "blog": 1,
   "java": 2,
